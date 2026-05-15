@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Agencia CRM</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CRM">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" id="pwa-icon">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#0a0a0c;--s1:#111114;--s2:#18181c;--s3:#222228;--b1:#2a2a32;--b2:#3a3a44;--tx:#eeeef4;--mu:rgba(180,180,200,.55);--ac:#7c6af7;--ac2:#a594ff;--gr:#3ecf8e;--gr2:rgba(62,207,142,.12);--am:#f0a429;--am2:rgba(240,164,41,.12);--rd:#f06060;--rd2:rgba(240,96,96,.12);--r:12px;--rs:8px;--nav-h:62px;--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;overscroll-behavior:none}
+.mono{font-family:'JetBrains Mono',monospace}
+.shell{display:flex;flex-direction:column;height:100dvh;height:100vh}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 12px)}
+.page{display:none;padding:14px 16px}
+.page.active{display:block}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-b));padding-bottom:var(--safe-b);background:rgba(10,10,12,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--b1);display:flex;z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--mu);cursor:pointer;transition:color .2s;padding:8px 0;font-family:'Syne',sans-serif}
+.nb svg{width:22px;height:22px;stroke-width:1.8;transition:all .2s}
+.nb span{font-size:10px;font-weight:600;letter-spacing:.04em}
+.nb.active{color:var(--ac2)}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 0 14px;position:sticky;top:0;z-index:10;background:var(--bg)}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-.6px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:'Syne',sans-serif;white-space:nowrap;letter-spacing:.01em}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--ac);color:#fff}
+.btn-ghost{background:var(--s2);color:var(--tx);border:1px solid var(--b1)}
+.btn-green{background:var(--gr2);color:var(--gr);border:1px solid rgba(62,207,142,.25)}
+.btn-red{background:var(--rd2);color:var(--rd);border:1px solid rgba(240,96,96,.25)}
+.btn-am{background:var(--am2);color:var(--am);border:1px solid rgba(240,164,41,.25)}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:6px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:var(--rs)}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi-row.tri{grid-template-columns:1fr 1fr 1fr}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px}
+.kpi.full{grid-column:1/-1}
+.kpi-label{font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.kpi-val{font-size:21px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px}
+.kpi-sub{font-size:11px;color:var(--mu);margin-top:4px}
+.c-gr{color:var(--gr)}.c-rd{color:var(--rd)}.c-am{color:var(--am)}.c-ac{color:var(--ac2)}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+
+/* LIST ITEM */
+.li{padding:13px 14px;border-bottom:1px solid var(--b1)}
+.li:last-child{border-bottom:none}
+.li-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.li-name{font-size:14px;font-weight:600}
+.li-sub{font-size:12px;color:var(--mu);margin-top:2px}
+.li-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600}
+.b-gr{background:var(--gr2);color:var(--gr)}
+.b-am{background:var(--am2);color:var(--am)}
+.b-rd{background:var(--rd2);color:var(--rd)}
+.b-ac{background:rgba(124,106,247,.15);color:var(--ac2)}
+
+/* AVATAR */
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+
+/* FILTER CHIPS */
+.chips{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;border:1px solid var(--b1);background:var(--s2);color:var(--mu);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Syne',sans-serif}
+.chip.active{background:rgba(124,106,247,.2);border-color:var(--ac);color:var(--ac2)}
+
+/* DEAL CARD */
+.dc{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.dc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.dc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.dc-stat{background:var(--s2);border-radius:var(--rs);padding:8px 10px}
+.dc-stat-l{font-size:10px;color:var(--mu);margin-bottom:3px;font-weight:500}
+.dc-stat-v{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.dc-footer{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* SELECT */
+.sel{background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);padding:8px 12px;color:var(--tx);font-size:13px;font-family:'Syne',sans-serif;appearance:none;cursor:pointer}
+
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;align-items:flex-end}
+.mover.open{display:flex}
+.modal{background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:93dvh;max-height:93vh;overflow-y:auto;padding:20px 16px;padding-bottom:calc(20px + var(--safe-b))}
+.mhandle{width:36px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px}
+.mtitle{font-size:17px;font-weight:700;margin-bottom:18px}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.fi{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);padding:10px 12px;color:var(--tx);font-size:14px;font-family:'Syne',sans-serif;transition:border .15s}
+.fi:focus{outline:none;border-color:var(--ac)}
+.fgr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mfooter{display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--b1)}
+.mfooter .btn{flex:1;padding:12px}
+
+/* TOAST */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--s3);border:1px solid var(--b2);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{color:var(--gr);border-color:rgba(62,207,142,.35)}
+.toast.err{color:var(--rd);border-color:rgba(240,96,96,.35)}
+
+/* CHART */
+.chart{display:flex;align-items:flex-end;gap:8px;height:90px}
+.bwrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bval{font-size:10px;color:var(--mu);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.bbar{width:100%;border-radius:3px 3px 0 0;min-height:4px}
+.blbl{font-size:10px;color:var(--mu)}
+
+/* MISC */
+.sec{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}
+.sec:first-child{margin-top:0}
+.empty{text-align:center;padding:36px 16px;color:var(--mu);font-size:13px}
+.spin{width:24px;height:24px;border:2px solid var(--b2);border-top-color:var(--ac);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading{text-align:center;padding:40px;color:var(--mu);font-size:13px}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL DEAL -->
+<div class="mover" id="m-deal">
+<div class="modal">
+  <div class="mhandle"></div>
+  <div class="mtitle" id="m-deal-title">Nuevo deal</div>
+  <input type="hidden" id="d-id">
+  <div class="fgr">
+    <div class="fg"><label>Mes</label><input class="fi" id="d-mes" type="month"></div>
+    <div class="fg"><label>Cliente</label><input class="fi" id="d-cliente" placeholder="Nombre"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Editor</label><select class="fi sel" id="d-editor"></select></div>
+    <div class="fg"><label>Videos</label><input class="fi" id="d-videos" type="number" min="1" placeholder="0"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Precio base $</label><input class="fi" id="d-precio" type="number" step="0.01" placeholder="0.00"></div>
+    <div class="fg"><label>Extras $</label><input class="fi" id="d-extras" type="number" step="0.01" value="0"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Inicio</label><input class="fi" id="d-inicio" type="date"></div>
+    <div class="fg"><label>Fin servicio</label><input class="fi" id="d-fin" type="date"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Estado cobro</label>
+      <select class="fi sel" id="d-estado">
+        <option value="0%">Sin cobrar</option>
+        <option value="50%">50% cobrado</option>
+        <option value="100%">100% cobrado</option>
+      </select>
+    </div>
+    <div class="fg"><label>Costo/video $ (opcional)</label><input class="fi" id="d-cvideo" type="number" step="0.01" placeholder="Auto"></div>
+  </div>
+  <div class="fg"><label>Link Drive</label><input class="fi" id="d-drive" placeholder="https://..."></div>
+  <div class="mfooter">
+    <button class="btn btn-ghost" onclick="closeModal('m-deal')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveDeal()">Guardar</button>
+  </div>
+</div>
+</div>
+
+
+<!-- MODAL CONTENIDO -->
+<div class="mover" id="m-cont">
+<div class="modal">
+  <div class="mhandle"></div>
+  <div class="mtitle" id="mc-title">Nuevo proyecto</div>
+  <input type="hidden" id="mc-id">
+  <div class="fgr">
+    <div class="fg"><label>Mes</label><input class="fi" id="mc-mes" type="month"></div>
+    <div class="fg"><label>Cliente</label><input class="fi" id="mc-cliente" placeholder="Nombre"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Tipo de proyecto</label>
+      <select class="fi sel" id="mc-tipo">
+        <option>Servicio de contenido</option>
+        <option>Guion de video</option>
+        <option>Copy para redes</option>
+        <option>Estrategia mensual</option>
+        <option>Pack copies + estrategia</option>
+        <option>Newsletter</option>
+        <option>Calendario de contenido</option>
+        <option>Otro</option>
+      </select>
+    </div>
+    <div class="fg"><label>Estado</label>
+      <select class="fi sel" id="mc-estado">
+        <option>En curso</option>
+        <option>Entregado</option>
+        <option>Pausado</option>
+        <option>Cancelado</option>
+      </select>
+    </div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Copywriter</label><select class="fi sel" id="mc-cw"></select></div>
+    <div class="fg"><label>Editor</label><select class="fi sel" id="mc-editor"></select></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Precio cliente $</label><input class="fi" id="mc-precio" type="number" step="0.01" placeholder="0.00"></div>
+    <div class="fg"><label>Cash cobrado $</label><input class="fi" id="mc-cobrado" type="number" step="0.01" value="0"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Costo copywriter $</label><input class="fi" id="mc-cw-costo" type="number" step="0.01" placeholder="0.00"></div>
+    <div class="fg"><label>Costo editor $</label><input class="fi" id="mc-ed-costo" type="number" step="0.01" placeholder="0.00"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Inicio</label><input class="fi" id="mc-inicio" type="date"></div>
+    <div class="fg"><label>Entrega</label><input class="fi" id="mc-entrega" type="date"></div>
+  </div>
+  <div class="fg"><label>Videos pactados</label><input class="fi" id="mc-videos" type="number" placeholder="0"></div>
+  <div class="fg"><label>Notas</label><input class="fi" id="mc-notas" placeholder="Opcional"></div>
+  <div class="mfooter">
+    <button class="btn btn-ghost" onclick="closeModal('m-cont')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveCont()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL COBRO -->
+<div class="mover" id="m-cobro">
+<div class="modal">
+  <div class="mhandle"></div>
+  <div class="mtitle">Registrar cobro</div>
+  <div class="fgr">
+    <div class="fg"><label>Fecha</label><input class="fi" id="c-fecha" type="date"></div>
+    <div class="fg"><label>Monto $</label><input class="fi" id="c-monto" type="number" step="0.01"></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Cliente</label><input class="fi" id="c-cliente" placeholder="Nombre"></div>
+    <div class="fg"><label>Editor</label><select class="fi sel" id="c-editor"></select></div>
+  </div>
+  <div class="fgr">
+    <div class="fg"><label>Mes del deal</label><input class="fi" id="c-mes" type="month"></div>
+    <div class="fg"><label>Método</label>
+      <select class="fi sel" id="c-metodo">
+        <option>Transferencia</option><option>Efectivo</option><option>PayPal</option><option>Crypto</option><option>Otro</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label>Concepto</label><input class="fi" id="c-concepto" placeholder="50% inicio..."></div>
+  <div class="mfooter">
+    <button class="btn btn-ghost" onclick="closeModal('m-cobro')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveCobro()">Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- APP -->
+<div class="shell">
+<div class="main" id="main">
+
+  <!-- DASHBOARD -->
+  <div id="pg-dash" class="page active">
+    <div class="topbar">
+      <div class="page-title">Dashboard</div>
+      <select class="sel" id="dash-mes" style="padding:7px 10px;font-size:12px" onchange="loadDash()">
+        <option value="2026-05">Mayo 26</option>
+        <option value="2026-04">Abril 26</option>
+        <option value="2026-03">Marzo 26</option>
+        <option value="">Total</option>
+      </select>
+    </div>
+    <div id="dash-c"><div class="loading"><div class="spin"></div>Cargando...</div></div>
+  </div>
+
+  <!-- DEALS -->
+  <div id="pg-deals" class="page">
+    <div class="topbar">
+      <div class="page-title">Deals</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewDeal()">+ Nuevo</button>
+    </div>
+    <div class="chips" id="deals-chips">
+      <button class="chip active" onclick="setDealMes('',this)">Todos</button>
+      <button class="chip" onclick="setDealMes('2026-05',this)">Mayo</button>
+      <button class="chip" onclick="setDealMes('2026-04',this)">Abril</button>
+      <button class="chip" onclick="setDealMes('2026-03',this)">Marzo</button>
+    </div>
+    <div id="deals-c"><div class="loading"><div class="spin"></div>Cargando...</div></div>
+  </div>
+
+  <!-- COBROS -->
+  <div id="pg-cobros" class="page">
+    <div class="topbar">
+      <div class="page-title">Cobros</div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('m-cobro')">+ Registrar</button>
+    </div>
+    <div id="cobros-c"><div class="loading"><div class="spin"></div>Cargando...</div></div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div id="pg-cont" class="page">
+    <div class="topbar">
+      <div class="page-title">Contenido</div>
+      <button class="btn btn-primary btn-sm" onclick="openNewCont()">+ Nuevo</button>
+    </div>
+    <div class="chips" id="cont-chips">
+      <button class="chip active" onclick="setContMes('',this)">Todos</button>
+      <button class="chip" onclick="setContMes('2026-05',this)">Mayo</button>
+      <button class="chip" onclick="setContMes('2026-04',this)">Abril</button>
+      <button class="chip" onclick="setContMes('2026-03',this)">Marzo</button>
+    </div>
+    <!-- KPIs contenido -->
+    <div id="cont-kpis"></div>
+    <!-- Deals contenido -->
+    <div id="cont-c"><div class="loading"><div class="spin"></div>Cargando...</div></div>
+  </div>
+
+  <!-- EDITORES -->
+  <div id="pg-edit" class="page">
+    <div class="topbar">
+      <div class="page-title">Editores</div>
+      <select class="sel" id="edit-mes" style="padding:7px 10px;font-size:12px" onchange="loadEdit()">
+        <option value="">Todos</option>
+        <option value="2026-05">Mayo</option>
+        <option value="2026-04">Abril</option>
+        <option value="2026-03">Marzo</option>
+      </select>
+    </div>
+    <div id="edit-c"><div class="loading"><div class="spin"></div>Cargando...</div></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nb active" id="nav-dash" onclick="showPage('dash')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Dashboard</span>
+  </button>
+  <button class="nb" id="nav-deals" onclick="showPage('deals')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Deals</span>
+  </button>
+  <button class="nb" id="nav-cobros" onclick="showPage('cobros')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Cobros</span>
+  </button>
+  <button class="nb" id="nav-edit" onclick="showPage('edit')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Editores</span>
+  </button>
+  <button class="nb" id="nav-cont" onclick="showPage('cont')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span>Contenido</span>
+  </button>
+</nav>
+</div>
+
+<script>
+// ─── SUPABASE ─────────────────────────────────────────────
+const SB_URL='https://tasmzwnflbefqfubkkfk.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhc216d25mbGJlZnFmdWJra2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODk0OTYsImV4cCI6MjA5NDI2NTQ5Nn0.l_kIqcHwhPSW7aTxrL_a13K6DWn_KIev2oDtZpRiDm0';
+let _sb=null;
+const db=()=>{if(!_sb)_sb=window.supabase.createClient(SB_URL,SB_KEY);return _sb};
+
+async function qGet(table,eq={}){
+  let q=db().from(table).select('*');
+  for(const[k,v]of Object.entries(eq)){
+    if(k==='_order'){const[c,d]=v.split('.');q=q.order(c,{ascending:d!=='desc'})}
+    else q=q.eq(k,v);
+  }
+  const{data,error}=await q;
+  if(error)throw error;
+  return data||[];
+}
+async function qIns(table,body){const{data,error}=await db().from(table).insert(body).select();if(error)throw error;return data}
+async function qUpd(table,id,body){const{error}=await db().from(table).update(body).eq('id',id);if(error)throw error}
+async function qDel(table,id){const{error}=await db().from(table).delete().eq('id',id);if(error)throw error}
+
+// ─── SYNC deals <-> pagos_editores ────────────────────────
+// Cuando se cambia un deal, actualiza automáticamente el registro en pagos_editores
+async function syncPE(dealId, d) {
+  try {
+    const{data:all}=await db().from('pagos_editores').select('*');
+    // Buscar por cliente + mes (el identificador natural del deal)
+    const match = (all||[]).find(p=>p.cliente===d.cliente && p.mes===d.mes);
+    const payload={
+      mes:d.mes, editor:d.editor, cliente:d.cliente,
+      videos:d.videos_pactados, costo:d.costo_editor_total,
+      fin_servicio:d.fin_servicio,
+      estado_pago:d.pago_editor==='Hecho'?'Pagado':'Pendiente'
+    };
+    if(match){
+      await db().from('pagos_editores').update(payload).eq('id',match.id);
+    } else {
+      await db().from('pagos_editores').insert(payload);
+    }
+  } catch(e){console.log('syncPE:',e.message)}
+}
+
+// Cuando se cambia pago en pagos_editores, actualiza deals
+async function syncDeal(pe) {
+  try {
+    const{data:deals}=await db().from('deals').select('id').eq('cliente',pe.cliente).eq('mes',pe.mes);
+    if(deals&&deals[0]){
+      await db().from('deals').update({pago_editor:pe.estado_pago==='Pagado'?'Hecho':'Pendiente'}).eq('id',deals[0].id);
+    }
+  } catch(e){console.log('syncDeal:',e.message)}
+}
+
+// ─── UTILS ─────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+const usd=v=>'$'+Number(v||0).toFixed(2);
+const ini=s=>(s||'?').trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const COLS=['#7c6af7','#3ecf8e','#f0a429','#60a5fa','#f06060','#a78bfa','#34d399','#fb923c'];
+const col=s=>{let h=0;for(const c of(s||''))h=(h*31+c.charCodeAt(0))&0x7fffffff;return COLS[h%COLS.length]};
+const av=(n,sz=32)=>`<div class="av" style="width:${sz}px;height:${sz}px;background:${col(n)}22;color:${col(n)}">${ini(n)}</div>`;
+const bdg=(ec)=>ec==='100%'?'<span class="badge b-gr">✓ Cobrado</span>':ec==='50%'?'<span class="badge b-am">50%</span>':'<span class="badge b-rd">Sin cobrar</span>';
+const bdgP=(e)=>e==='Hecho'||e==='Pagado'?'<span class="badge b-gr">✓ Pagado</span>':'<span class="badge b-am">Pendiente</span>';
+
+function toast(msg,type='ok'){
+  const t=$('toast');t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ─── NAV ───────────────────────────────────────────────────
+let curPage='dash', dealsMes='';
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  $(`pg-${id}`).classList.add('active');
+  $(`nav-${id}`).classList.add('active');
+  $('main').scrollTo(0,0);
+  curPage=id;
+  if(id==='dash')loadDash();
+  if(id==='deals')loadDeals();
+  if(id==='cobros')loadCobros();
+  if(id==='edit')loadEdit();
+}
+function openModal(id){$(id).classList.add('open')}
+function closeModal(id){$(id).classList.remove('open')}
+document.querySelectorAll('.mover').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open')}));
+
+// ─── DASHBOARD ─────────────────────────────────────────────
+async function loadDash(){
+  const mes=$('dash-mes').value;
+  const[deals,cobros]=await Promise.all([
+    mes?qGet('deals',{mes,_order:'fin_servicio.asc'}):qGet('deals',{_order:'mes.desc'}),
+    mes?qGet('cobros',{mes_real:mes}):qGet('cobros',{_order:'fecha_cobro.desc'})
+  ]);
+  const fac=deals.reduce((s,d)=>s+Number(d.precio_final||0),0);
+  const cob=cobros.reduce((s,c)=>s+Number(c.monto||0),0);
+  const pend=deals.reduce((s,d)=>s+Number(d.cash_pendiente||0),0);
+  const cost=deals.reduce((s,d)=>s+Number(d.costo_editor_total||0),0);
+  const gan=fac-cost;
+  const mrg=fac>0?((gan/fac)*100).toFixed(1):0;
+  const dealsRet=deals.filter(d=>d.ganancia_retirada==='Sí');
+  const retirado=dealsRet.reduce((s,d)=>s+Number(d.ganancia_neta||0),0);
+  const dealsSinRet=deals.filter(d=>d.ganancia_retirada!=='Sí');
+  const porRetirar=dealsSinRet.reduce((s,d)=>s+Number(d.ganancia_neta||0),0);
+
+  const byC={};
+  deals.forEach(d=>{
+    if(!byC[d.cliente])byC[d.cliente]={f:0,c:0,p:0};
+    byC[d.cliente].f+=Number(d.precio_final||0);
+    byC[d.cliente].c+=Number(d.cash_collected||0);
+    byC[d.cliente].p+=Number(d.cash_pendiente||0);
+  });
+
+  const meses=['2026-03','2026-04','2026-05'],mlbls=['Mar','Abr','May'];
+  const allD=await qGet('deals',{_order:'mes.asc'});
+  const tots=meses.map(m=>allD.filter(d=>d.mes===m).reduce((s,d)=>s+Number(d.precio_final||0),0));
+  const maxV=Math.max(...tots,1),BAR=70;
+
+  $('dash-c').innerHTML=`
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Facturado</div><div class="kpi-val">${usd(fac)}</div><div class="kpi-sub">${deals.length} deals</div></div>
+      <div class="kpi"><div class="kpi-label">Cash cobrado</div><div class="kpi-val c-gr">${usd(cob)}</div></div>
+    </div>
+    <div class="kpi-row tri">
+      <div class="kpi"><div class="kpi-label">Por cobrar</div><div class="kpi-val c-rd">${usd(pend)}</div></div>
+      <div class="kpi"><div class="kpi-label">Costo edit.</div><div class="kpi-val">${usd(cost)}</div></div>
+      <div class="kpi"><div class="kpi-label">Margen</div><div class="kpi-val c-gr">${mrg}%</div></div>
+    </div>
+    <div class="kpi full" style="margin-bottom:12px"><div class="kpi-label">Ganancia neta</div><div class="kpi-val c-gr" style="font-size:26px">${usd(gan)}</div></div>
+    <div class="kpi-row" style="margin-bottom:16px">
+      <div class="kpi" style="border-color:rgba(124,106,247,.3)"><div class="kpi-label" style="color:var(--ac2)">💸 Retirado</div><div class="kpi-val c-ac">${usd(retirado)}</div><div class="kpi-sub">${dealsRet} deals</div></div>
+      <div class="kpi"><div class="kpi-label">Por retirar</div><div class="kpi-val c-am">${usd(porRetirar)}</div><div class="kpi-sub">${dealsSinRet} deals</div></div>
+    </div>
+    <div class="sec">Evolución mensual</div>
+    <div class="card" style="padding:14px">
+      <div class="chart">
+        ${meses.map((m,i)=>{
+          const h=Math.max(4,Math.round(tots[i]/maxV*BAR));
+          return`<div class="bwrap"><div class="bval">${usd(tots[i])}</div><div style="flex:1;width:100%;display:flex;align-items:flex-end"><div class="bbar" style="height:${h}px;background:${m===mes?'var(--ac)':'var(--s3)'}"></div></div><div class="blbl">${mlbls[i]}</div></div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="sec">Por cliente</div>
+    <div class="card">
+      ${Object.entries(byC).map(([n,v])=>`
+        <div class="li">
+          <div class="li-row">
+            <div style="display:flex;align-items:center;gap:10px">${av(n)}<div><div class="li-name">${n}</div><div class="li-sub">Facturado ${usd(v.f)}</div></div></div>
+            <div style="text-align:right"><div class="mono" style="font-size:15px;font-weight:700;color:var(--gr)">${usd(v.c)}</div><div class="li-sub">${v.p>0?`<span class="c-rd">${usd(v.p)} pend.</span>`:'✓ al día'}</div></div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ─── DEALS ─────────────────────────────────────────────────
+async function loadDeals(){
+  const deals=dealsMes?await qGet('deals',{mes:dealsMes,_order:'fin_servicio.asc'}):await qGet('deals',{_order:'mes.desc'});
+  if(!deals.length){$('deals-c').innerHTML='<div class="empty">No hay deals</div>';return}
+  $('deals-c').innerHTML=deals.map(d=>`
+    <div class="dc">
+      <div class="dc-top">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${av(d.cliente,38)}
+          <div><div style="font-size:15px;font-weight:700">${d.cliente}</div><div class="li-sub">${d.editor} · ${d.mes||''} · ${d.videos_pactados} videos</div></div>
+        </div>
+        <button class="btn btn-ghost btn-icon" onclick="openEditDeal(${d.id})">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+      <div class="dc-grid">
+        <div class="dc-stat"><div class="dc-stat-l">Precio</div><div class="dc-stat-v">${usd(d.precio_final)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Cobrado</div><div class="dc-stat-v c-gr">${usd(d.cash_collected)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Ganancia</div><div class="dc-stat-v c-gr">${usd(d.ganancia_neta)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Costo edit.</div><div class="dc-stat-v c-am">${usd(d.costo_editor_total)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Pendiente</div><div class="dc-stat-v c-rd">${usd(d.cash_pendiente)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Margen</div><div class="dc-stat-v">${d.margen?(d.margen*100).toFixed(0)+'%':'—'}</div></div>
+      </div>
+      <div class="dc-footer">
+        ${bdg(d.estado_cobro)} ${bdgP(d.pago_editor)}
+        ${d.estado_cobro!=='100%'
+          ?`<button class="btn btn-green btn-sm" onclick="cobrarDeal(${d.id},${d.precio_final},'${d.estado_cobro}')">✓ Cobrar</button>`
+          :`<button class="btn btn-red btn-sm" onclick="cobrarDeal(${d.id},${d.precio_final},'${d.estado_cobro}')">↩ Revertir cobro</button>`}
+        ${d.pago_editor!=='Hecho'
+          ?`<button class="btn btn-am btn-sm" onclick="pagarEditor(${d.id},'${d.pago_editor}')">✓ Pagar editor</button>`
+          :`<button class="btn btn-red btn-sm" onclick="pagarEditor(${d.id},'${d.pago_editor}')">↩ Revertir pago</button>`}
+        ${d.ganancia_retirada==='Sí'
+          ?`<button class="btn btn-red btn-sm" onclick="toggleRetirado(${d.id},'Sí')">↩ No retirado</button>`
+          :`<button class="btn btn-sm" style="background:rgba(124,106,247,.15);color:var(--ac2);border:1px solid rgba(124,106,247,.25)" onclick="toggleRetirado(${d.id},'')">💸 Retirar</button>`}
+      </div>
+    </div>`).join('');
+}
+
+function setDealMes(mes,el){
+  dealsMes=mes;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  loadDeals();
+}
+
+let _editCache=[];
+async function getEditores(){
+  if(!_editCache.length)_editCache=await qGet('editores',{_order:'nombre.asc'});
+  return _editCache;
+}
+async function fillEditorSel(elId,selected=''){
+  const eds=await getEditores();
+  $(elId).innerHTML='<option value="">Seleccioná</option>'+eds.map(e=>`<option value="${e.nombre}"${e.nombre===selected?' selected':''}>${e.nombre}</option>`).join('');
+}
+
+async function openNewDeal(){
+  $('m-deal-title').textContent='Nuevo deal';
+  $('d-id').value='';
+  const today=new Date().toISOString();
+  $('d-mes').value=today.slice(0,7);
+  $('d-cliente').value='';$('d-videos').value='';$('d-precio').value='';
+  $('d-extras').value='0';$('d-inicio').value=today.slice(0,10);
+  $('d-fin').value='';$('d-estado').value='0%';$('d-cvideo').value='';$('d-drive').value='';
+  await fillEditorSel('d-editor');
+  openModal('m-deal');
+}
+
+async function openEditDeal(id){
+  const deals=await qGet('deals',{_order:'id.asc'});
+  const d=deals.find(x=>x.id===id);if(!d)return;
+  $('m-deal-title').textContent='Editar deal';
+  $('d-id').value=id;
+  $('d-mes').value=d.mes||'';$('d-cliente').value=d.cliente||'';
+  $('d-videos').value=d.videos_pactados||'';$('d-precio').value=d.precio_final||'';
+  $('d-extras').value=d.extras||'0';
+  $('d-inicio').value=d.inicio_servicio?d.inicio_servicio.slice(0,10):'';
+  $('d-fin').value=d.fin_servicio?d.fin_servicio.slice(0,10):'';
+  $('d-estado').value=d.estado_cobro||'0%';$('d-cvideo').value='';$('d-drive').value=d.link_drive||'';
+  await fillEditorSel('d-editor',d.editor);
+  openModal('m-deal');
+}
+
+async function saveDeal(){
+  const id=$('d-id').value;
+  const mes=$('d-mes').value,cliente=$('d-cliente').value.trim(),editor=$('d-editor').value;
+  const videos=parseInt($('d-videos').value)||0;
+  const precio_base=parseFloat($('d-precio').value)||0;
+  const extras=parseFloat($('d-extras').value)||0;
+  const precio_final=precio_base+extras;
+  const inicio=$('d-inicio').value||null,fin=$('d-fin').value||null;
+  const estado_cobro=$('d-estado').value;
+  const costo_ov=parseFloat($('d-cvideo').value)||null;
+  const link_drive=$('d-drive').value.trim()||null;
+  if(!mes||!cliente||!editor||!videos||!precio_base){toast('Completá los campos obligatorios','err');return}
+  const cpv=costo_ov||(videos<=8?9:videos<=16?8:6);
+  const costo_editor_total=cpv*videos;
+  const ganancia_neta=precio_final-costo_editor_total;
+  const margen=precio_final>0?ganancia_neta/precio_final:0;
+  const cash_collected=estado_cobro==='100%'?precio_final:estado_cobro==='50%'?precio_final/2:0;
+  const cash_pendiente=precio_final-cash_collected;
+  const payload={mes,cliente,editor,videos_pactados:videos,precio_base,extras,precio_final,
+    inicio_servicio:inicio,fin_servicio:fin,estado_cobro,cash_collected,cash_pendiente,
+    costo_por_video:cpv,costo_editor_total,ganancia_neta,margen,link_drive,mes_cierre:fin?fin.slice(0,7):mes};
+  try{
+    if(id){
+      // Obtener pago_editor actual para no resetear
+      const cur=await qGet('deals',{_order:'id.asc'});
+      const existing=cur.find(d=>d.id===Number(id));
+      await qUpd('deals',Number(id),payload);
+      // SYNC pagos_editores automáticamente
+      await syncPE(Number(id),{...payload,pago_editor:existing?existing.pago_editor:'Pendiente'});
+      toast('Deal actualizado ✓');
+    } else {
+      const data=await qIns('deals',{...payload,pago_editor:'Pendiente'});
+      if(data&&data[0])await syncPE(data[0].id,{...payload,pago_editor:'Pendiente'});
+      toast('Deal creado ✓');
+    }
+    closeModal('m-deal');loadDeals();
+    if(curPage==='edit')loadEdit();
+  if(curPage==='cont')loadCont();
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+async function cobrarDeal(id,precio_final,estadoActual){
+  try{
+    const nuevo=estadoActual==='100%'
+      ?{estado_cobro:'50%',cash_collected:precio_final/2,cash_pendiente:precio_final/2}
+      :{estado_cobro:'100%',cash_collected:precio_final,cash_pendiente:0};
+    await qUpd('deals',id,nuevo);
+    toast(estadoActual==='100%'?'Revertido a 50%':'Cobro completo ✓');
+    loadDeals();if(curPage==='cobros')loadCobros();
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+async function pagarEditor(dealId,estadoActual){
+  try{
+    const nuevo=estadoActual==='Hecho'?'Pendiente':'Hecho';
+    await qUpd('deals',dealId,{pago_editor:nuevo});
+    // SYNC pagos_editores
+    const deals=await qGet('deals',{_order:'id.asc'});
+    const d=deals.find(x=>x.id===dealId);
+    if(d)await syncPE(dealId,{...d,pago_editor:nuevo});
+    toast(nuevo==='Hecho'?'Editor pagado ✓':'Revertido a pendiente');
+    loadDeals();if(curPage==='edit')loadEdit();
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+// ─── COBROS ─────────────────────────────────────────────────
+async function loadCobros(){
+  const deals=await qGet('deals',{_order:'fin_servicio.asc'});
+  const pend=deals.filter(d=>Number(d.cash_pendiente||0)>0);
+  const hoy=new Date();
+  const venc=pend.filter(d=>d.fin_servicio&&new Date(d.fin_servicio)<hoy);
+  const totP=pend.reduce((s,d)=>s+Number(d.cash_pendiente||0),0);
+  const totV=venc.reduce((s,d)=>s+Number(d.cash_pendiente||0),0);
+  $('cobros-c').innerHTML=`
+    <div class="kpi-row tri">
+      <div class="kpi"><div class="kpi-label">Total pend.</div><div class="kpi-val c-rd">${usd(totP)}</div></div>
+      <div class="kpi"><div class="kpi-label">Vencido</div><div class="kpi-val c-rd">${usd(totV)}</div><div class="kpi-sub">${venc.length} clientes</div></div>
+      <div class="kpi"><div class="kpi-label">No vencido</div><div class="kpi-val">${usd(totP-totV)}</div></div>
+    </div>
+    <div class="sec">Pendientes de cobro</div>
+    <div class="card">
+      ${pend.length?pend.map(d=>{
+        const dias=d.fin_servicio?Math.floor((hoy-new Date(d.fin_servicio))/86400000):null;
+        const vb=dias===null?'':dias>0?`<span class="badge b-rd">${dias}d vencido</span>`:dias===0?`<span class="badge b-am">Hoy</span>`:`<span class="badge b-ac">No vencido</span>`;
+        return`<div class="li">
+          <div class="li-row">
+            <div style="display:flex;align-items:center;gap:10px">${av(d.cliente)}<div><div class="li-name">${d.cliente}</div><div class="li-sub">${d.editor} · ${d.mes||''}</div></div></div>
+            <div class="mono c-rd" style="font-size:16px;font-weight:700">${usd(d.cash_pendiente)}</div>
+          </div>
+          <div class="li-actions">${vb}<button class="btn btn-green btn-sm" onclick="cobrarDeal(${d.id},${d.precio_final},'${d.estado_cobro}')">✓ Cobrar</button></div>
+        </div>`;
+      }).join(''):'<div class="empty">Sin cobros pendientes 🎉</div>'}
+    </div>`;
+}
+
+async function saveCobro(){
+  const fecha=$('c-fecha').value,cliente=$('c-cliente').value.trim(),monto=parseFloat($('c-monto').value)||0;
+  if(!fecha||!cliente||!monto){toast('Completá los campos','err');return}
+  try{
+    await qIns('cobros',{fecha_cobro:fecha,cliente,mes_deal:$('c-mes').value||null,
+      editor:$('c-editor').value||null,monto,concepto:$('c-concepto').value||null,
+      metodo_pago:$('c-metodo').value,mes_real:fecha.slice(0,7)});
+    toast('Cobro registrado ✓');closeModal('m-cobro');loadCobros();
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+// ─── EDITORES ──────────────────────────────────────────────
+async function loadEdit(){
+  const mes=$('edit-mes').value;
+  const pagos=mes?await qGet('pagos_editores',{mes,_order:'editor.asc'}):await qGet('pagos_editores',{_order:'mes.desc'});
+  const pend=pagos.filter(p=>p.estado_pago!=='Pagado');
+  const pag=pagos.filter(p=>p.estado_pago==='Pagado');
+  const totP=pend.reduce((s,p)=>s+Number(p.costo||0),0);
+  const totPag=pag.reduce((s,p)=>s+Number(p.costo||0),0);
+  $('edit-c').innerHTML=`
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Pendiente pago</div><div class="kpi-val c-rd">${usd(totP)}</div><div class="kpi-sub">${pend.length} registros</div></div>
+      <div class="kpi"><div class="kpi-label">Pagado período</div><div class="kpi-val c-gr">${usd(totPag)}</div><div class="kpi-sub">${pag.length} pagos</div></div>
+    </div>
+    <div class="sec">Todos los pagos</div>
+    <div class="card">
+      ${pagos.length?pagos.map(p=>{
+        const isPaid=p.estado_pago==='Pagado';
+        return`<div class="li" style="opacity:${isPaid?'.5':'1'}">
+          <div class="li-row">
+            <div style="display:flex;align-items:center;gap:10px">${av(p.editor)}<div><div class="li-name">${p.editor}</div><div class="li-sub">${p.cliente} · ${p.mes||''} · ${p.videos||0} videos</div></div></div>
+            <div style="text-align:right"><div class="mono" style="font-size:15px;font-weight:700;color:${isPaid?'var(--mu)':'var(--am)'}">${usd(p.costo)}</div>${isPaid?'<span class="badge b-gr">✓ Pagado</span>':'<span class="badge b-am">Pendiente</span>'}</div>
+          </div>
+          <div class="li-actions">
+            ${p.fin_servicio?`<span class="li-sub">Fin: ${p.fin_servicio.slice(0,10)}</span>`:''}
+            ${isPaid
+              ?`<button class="btn btn-red btn-sm" onclick="togglePE(${p.id},'Pagado')">↩ Revertir</button>`
+              :`<button class="btn btn-green btn-sm" onclick="togglePE(${p.id},'Pendiente')">✓ Pagar</button>`}
+          </div>
+        </div>`;
+      }).join(''):'<div class="empty">No hay registros</div>'}
+    </div>`;
+}
+
+async function togglePE(id,estadoActual){
+  try{
+    const nuevo=estadoActual==='Pendiente'?'Pagado':'Pendiente';
+    await qUpd('pagos_editores',id,{estado_pago:nuevo});
+    // SYNC back to deals
+    const{data:pe}=await db().from('pagos_editores').select('*').eq('id',id);
+    if(pe&&pe[0])await syncDeal({...pe[0],estado_pago:nuevo});
+    toast(nuevo==='Pagado'?'Pago registrado ✓':'Revertido a pendiente');
+    loadEdit();if(curPage==='deals')loadDeals();
+  }catch(e){toast('Error: '+e.message,'err')}
+}
+
+// ─── RETIRADO ──────────────────────────────────────────────
+async function toggleRetirado(id, estadoActual){
+  try{
+    const nuevo = estadoActual === 'Sí' ? '' : 'Sí';
+    await qUpd('deals', id, { ganancia_retirada: nuevo });
+    toast(nuevo === 'Sí' ? 'Marcado como retirado ✓' : 'Revertido a no retirado');
+    loadDeals();
+    if(curPage === 'dash') loadDash();
+  }catch(e){ toast('Error: ' + e.message, 'err') }
+}
+
+// ─── CONTENIDO ─────────────────────────────────────────────
+let contMes = '';
+
+function setContMes(mes, el) {
+  contMes = mes;
+  document.querySelectorAll('#cont-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  loadCont();
+}
+
+async function loadCont() {
+  const filters = contMes ? { mes: contMes, _order: 'entrega.asc' } : { _order: 'mes.desc' };
+  const deals = await qGet('deals_contenido', filters);
+
+  const fac = deals.reduce((s,d) => s + Number(d.precio_cliente||0), 0);
+  const cob = deals.reduce((s,d) => s + Number(d.cash_cobrado||0), 0);
+  const pend = deals.reduce((s,d) => s + Number(d.pendiente_cobrar||0), 0);
+  const costoCW = deals.reduce((s,d) => s + Number(d.costo_copywriter||0), 0);
+  const costoEd = deals.reduce((s,d) => s + Number(d.costo_editor||0), 0);
+  const gan = deals.reduce((s,d) => s + Number(d.ganancia_neta||0), 0);
+  const ret = deals.filter(d=>d.ganancia_retirada==='Sí').reduce((s,d)=>s+Number(d.ganancia_neta||0),0);
+  const porRet = deals.filter(d=>d.ganancia_retirada!=='Sí').reduce((s,d)=>s+Number(d.ganancia_neta||0),0);
+
+  document.getElementById('cont-kpis').innerHTML = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Facturado</div><div class="kpi-val">${usd(fac)}</div><div class="kpi-sub">${deals.length} proyectos</div></div>
+      <div class="kpi"><div class="kpi-label">Cash cobrado</div><div class="kpi-val c-gr">${usd(cob)}</div></div>
+    </div>
+    <div class="kpi-row tri">
+      <div class="kpi"><div class="kpi-label">Por cobrar</div><div class="kpi-val c-rd">${usd(pend)}</div></div>
+      <div class="kpi"><div class="kpi-label">Costo CW</div><div class="kpi-val c-am">${usd(costoCW)}</div></div>
+      <div class="kpi"><div class="kpi-label">Costo edit.</div><div class="kpi-val c-am">${usd(costoEd)}</div></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Ganancia neta</div><div class="kpi-val c-gr" style="font-size:22px">${usd(gan)}</div></div>
+      <div class="kpi"><div class="kpi-label">💸 Retirado</div><div class="kpi-val c-ac">${usd(ret)}</div></div>
+    </div>`;
+
+  if (!deals.length) { document.getElementById('cont-c').innerHTML = '<div class="empty">No hay proyectos</div>'; return; }
+
+  document.getElementById('cont-c').innerHTML = deals.map(d => {
+    const estadoBadge = d.estado_proyecto === 'Entregado'
+      ? '<span class="badge b-gr">✓ Entregado</span>'
+      : d.estado_proyecto === 'En curso'
+      ? '<span class="badge b-ac">En curso</span>'
+      : `<span class="badge b-am">${d.estado_proyecto||'—'}</span>`;
+    return `<div class="dc">
+      <div class="dc-top">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${av(d.cliente, 38)}
+          <div>
+            <div style="font-size:15px;font-weight:700">${d.cliente}</div>
+            <div class="li-sub">${d.tipo_proyecto||'—'} · ${d.mes||''}</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-icon" onclick="openEditCont(${d.id})">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+      <div class="dc-grid">
+        <div class="dc-stat"><div class="dc-stat-l">Precio</div><div class="dc-stat-v">${usd(d.precio_cliente)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Cobrado</div><div class="dc-stat-v c-gr">${usd(d.cash_cobrado)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Pendiente</div><div class="dc-stat-v c-rd">${usd(d.pendiente_cobrar)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">CW: ${d.copywriter||'—'}</div><div class="dc-stat-v c-am">${usd(d.costo_copywriter)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Editor: ${d.editor||'—'}</div><div class="dc-stat-v c-am">${usd(d.costo_editor)}</div></div>
+        <div class="dc-stat"><div class="dc-stat-l">Ganancia</div><div class="dc-stat-v c-gr">${usd(d.ganancia_neta)}</div></div>
+      </div>
+      <div class="dc-footer">
+        ${estadoBadge}
+        ${bdg(d.cash_cobrado >= d.precio_cliente ? '100%' : d.cash_cobrado > 0 ? '50%' : '0%')}
+        ${bdgP(d.pago_copywriter)} <span class="li-sub" style="font-size:10px">CW</span>
+        ${bdgP(d.pago_editor)} <span class="li-sub" style="font-size:10px">Edit.</span>
+        ${d.pendiente_cobrar > 0
+          ? `<button class="btn btn-green btn-sm" onclick="cobrarCont(${d.id},${d.precio_cliente})">✓ Cobrar</button>`
+          : `<button class="btn btn-red btn-sm" onclick="cobrarCont(${d.id},${d.precio_cliente})">↩ Revertir</button>`}
+        ${d.pago_copywriter !== 'Hecho'
+          ? `<button class="btn btn-am btn-sm" onclick="pagarCW(${d.id},'Pendiente')">✓ Pagar CW</button>`
+          : `<button class="btn btn-red btn-sm" onclick="pagarCW(${d.id},'Hecho')">↩ CW</button>`}
+        ${d.pago_editor !== 'Hecho'
+          ? `<button class="btn btn-am btn-sm" onclick="pagarEdCont(${d.id},'Pendiente')">✓ Pagar edit.</button>`
+          : `<button class="btn btn-red btn-sm" onclick="pagarEdCont(${d.id},'Hecho')">↩ Edit.</button>`}
+        ${d.ganancia_retirada === 'Sí'
+          ? `<button class="btn btn-red btn-sm" onclick="retirarCont(${d.id},'Sí')">↩ No retirado</button>`
+          : `<button class="btn btn-sm" style="background:rgba(124,106,247,.15);color:var(--ac2);border:1px solid rgba(124,106,247,.25)" onclick="retirarCont(${d.id},'')">💸 Retirar</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function cobrarCont(id, precio) {
+  try {
+    const deals = await qGet('deals_contenido', { _order: 'id.asc' });
+    const d = deals.find(x => x.id === id);
+    if (!d) return;
+    const yaTotal = Number(d.cash_cobrado) >= precio;
+    const nuevo = yaTotal
+      ? { cash_cobrado: precio/2, pendiente_cobrar: precio/2 }
+      : { cash_cobrado: precio, pendiente_cobrar: 0 };
+    await qUpd('deals_contenido', id, nuevo);
+    toast(yaTotal ? 'Revertido a 50%' : 'Cobro completo ✓');
+    loadCont();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function pagarCW(id, estadoActual) {
+  try {
+    const nuevo = estadoActual === 'Hecho' ? 'Pendiente' : 'Hecho';
+    await qUpd('deals_contenido', id, { pago_copywriter: nuevo });
+    toast(nuevo === 'Hecho' ? 'Copywriter pagado ✓' : 'Revertido');
+    loadCont();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function pagarEdCont(id, estadoActual) {
+  try {
+    const nuevo = estadoActual === 'Hecho' ? 'Pendiente' : 'Hecho';
+    await qUpd('deals_contenido', id, { pago_editor: nuevo });
+    toast(nuevo === 'Hecho' ? 'Editor pagado ✓' : 'Revertido');
+    loadCont();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function retirarCont(id, estadoActual) {
+  try {
+    const nuevo = estadoActual === 'Sí' ? '' : 'Sí';
+    await qUpd('deals_contenido', id, { ganancia_retirada: nuevo });
+    toast(nuevo === 'Sí' ? 'Marcado como retirado ✓' : 'Revertido');
+    loadCont();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// Modal contenido
+async function openNewCont() {
+  document.getElementById('mc-title').textContent = 'Nuevo proyecto';
+  document.getElementById('mc-id').value = '';
+  const today = new Date().toISOString();
+  document.getElementById('mc-mes').value = today.slice(0,7);
+  document.getElementById('mc-cliente').value = '';
+  document.getElementById('mc-tipo').value = 'Servicio de contenido';
+  document.getElementById('mc-inicio').value = today.slice(0,10);
+  document.getElementById('mc-entrega').value = '';
+  document.getElementById('mc-estado').value = 'En curso';
+  document.getElementById('mc-precio').value = '';
+  document.getElementById('mc-cobrado').value = '0';
+  document.getElementById('mc-cw-costo').value = '';
+  document.getElementById('mc-ed-costo').value = '';
+  document.getElementById('mc-videos').value = '';
+  document.getElementById('mc-notas').value = '';
+  await fillCWSelect('mc-cw', '');
+  await fillEditorSel('mc-editor', '');
+  openModal('m-cont');
+}
+
+async function openEditCont(id) {
+  const deals = await qGet('deals_contenido', { _order: 'id.asc' });
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('mc-title').textContent = 'Editar proyecto';
+  document.getElementById('mc-id').value = id;
+  document.getElementById('mc-mes').value = d.mes || '';
+  document.getElementById('mc-cliente').value = d.cliente || '';
+  document.getElementById('mc-tipo').value = d.tipo_proyecto || 'Servicio de contenido';
+  document.getElementById('mc-inicio').value = d.inicio ? d.inicio.slice(0,10) : '';
+  document.getElementById('mc-entrega').value = d.entrega ? d.entrega.slice(0,10) : '';
+  document.getElementById('mc-estado').value = d.estado_proyecto || 'En curso';
+  document.getElementById('mc-precio').value = d.precio_cliente || '';
+  document.getElementById('mc-cobrado').value = d.cash_cobrado || '0';
+  document.getElementById('mc-cw-costo').value = d.costo_copywriter || '';
+  document.getElementById('mc-ed-costo').value = d.costo_editor || '';
+  document.getElementById('mc-videos').value = d.videos_pactados || '';
+  document.getElementById('mc-notas').value = d.notas || '';
+  await fillCWSelect('mc-cw', d.copywriter);
+  await fillEditorSel('mc-editor', d.editor);
+  openModal('m-cont');
+}
+
+let _cwCache = [];
+async function fillCWSelect(elId, selected = '') {
+  if (!_cwCache.length) _cwCache = await qGet('copywriters', { _order: 'nombre.asc' });
+  document.getElementById(elId).innerHTML = '<option value="">Seleccioná</option>' +
+    _cwCache.map(c => `<option value="${c.nombre}" ${c.nombre === selected ? 'selected' : ''}>${c.nombre}</option>`).join('');
+}
+
+async function saveCont() {
+  const id = document.getElementById('mc-id').value;
+  const mes = document.getElementById('mc-mes').value;
+  const cliente = document.getElementById('mc-cliente').value.trim();
+  const tipo_proyecto = document.getElementById('mc-tipo').value;
+  const copywriter = document.getElementById('mc-cw').value;
+  const editor = document.getElementById('mc-editor').value;
+  const inicio = document.getElementById('mc-inicio').value || null;
+  const entrega = document.getElementById('mc-entrega').value || null;
+  const estado_proyecto = document.getElementById('mc-estado').value;
+  const precio_cliente = parseFloat(document.getElementById('mc-precio').value) || 0;
+  const cash_cobrado = parseFloat(document.getElementById('mc-cobrado').value) || 0;
+  const costo_copywriter = parseFloat(document.getElementById('mc-cw-costo').value) || 0;
+  const costo_editor = parseFloat(document.getElementById('mc-ed-costo').value) || 0;
+  const videos_pactados = parseInt(document.getElementById('mc-videos').value) || 0;
+  const notas = document.getElementById('mc-notas').value.trim() || null;
+  if (!mes || !cliente || !precio_cliente) { toast('Completá los campos obligatorios', 'err'); return; }
+  const pendiente_cobrar = precio_cliente - cash_cobrado;
+  const ganancia_neta = precio_cliente - costo_copywriter - costo_editor;
+  const payload = { mes, cliente, tipo_proyecto, copywriter, editor, inicio, entrega,
+    estado_proyecto, precio_cliente, cash_cobrado, pendiente_cobrar,
+    costo_copywriter, costo_editor, videos_pactados, ganancia_neta, notas,
+    mes_cierre: entrega ? entrega.slice(0,7) : mes };
+  try {
+    if (id) {
+      await qUpd('deals_contenido', Number(id), payload);
+      toast('Proyecto actualizado ✓');
+    } else {
+      await qIns('deals_contenido', { ...payload, pago_copywriter: 'Pendiente', pago_editor: 'Pendiente', ganancia_retirada: 'No' });
+      toast('Proyecto creado ✓');
+    }
+    closeModal('m-cont');
+    loadCont();
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+// ─── INIT ───────────────────────────────────────────────────
+(async()=>{
+  const today=new Date().toISOString();
+  $('c-fecha').value=today.slice(0,10);
+  $('c-mes').value=today.slice(0,7);
+  await fillEditorSel('c-editor');
+  await loadDash();
+
+  // PWA
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#0a0a0c"/><rect x="56" y="56" width="176" height="176" rx="28" fill="#7c6af7"/><rect x="280" y="56" width="176" height="176" rx="28" fill="#3ecf8e" opacity=".8"/><rect x="56" y="280" width="176" height="176" rx="28" fill="#3ecf8e" opacity=".5"/><rect x="280" y="280" width="176" height="176" rx="28" fill="#7c6af7" opacity=".4"/></svg>`;
+  const iurl=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  if($('pwa-icon'))$('pwa-icon').href=iurl;
+  const mf={name:'Agencia CRM',short_name:'CRM',start_url:'./',display:'standalone',background_color:'#0a0a0c',theme_color:'#7c6af7',icons:[{src:iurl,sizes:'512x512',type:'image/svg+xml'}]};
+  if($('pwa-manifest'))$('pwa-manifest').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));
+  let dp;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();dp=e;
+    const b=document.createElement('button');
+    b.className='btn btn-primary';
+    b.style.cssText='position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);right:16px;z-index:98;box-shadow:0 4px 20px rgba(124,106,247,.5)';
+    b.innerHTML='📲 Instalar app';
+    b.onclick=()=>{dp.prompt();b.remove()};
+    document.body.appendChild(b);
+  });
+})();
+</script>
+</body>
+</html>
