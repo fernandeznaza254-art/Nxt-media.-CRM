@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NXT Media · Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f0f0f;--s1:#1a1a1a;--s2:#222;--s3:#2a2a2a;--b:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.13);--acc:#aaff00;--acc2:rgba(170,255,0,0.12);--acc3:rgba(170,255,0,0.28);--txt:#f0f0f0;--mu:#888;--mu2:#555;--red:#ff4d4d;--red2:rgba(255,77,77,0.12);--amb:#ffaa00;--amb2:rgba(255,170,0,0.12);--grn:#aaff00;--grn2:rgba(170,255,0,0.12);--blu:#4da6ff;--blu2:rgba(77,166,255,0.12);--sw:220px;--r:12px;--rs:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;background:var(--bg);color:var(--txt);display:flex;min-height:100vh;font-size:14px;overflow-x:hidden}
+.sidebar{width:var(--sw);background:var(--s1);border-right:1px solid var(--b);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:10;overflow-y:auto}
+.slogo{padding:22px 20px 18px;border-bottom:1px solid var(--b)}
+.brand{font-size:18px;font-weight:700;letter-spacing:-.5px;color:var(--acc)}
+.sub{font-size:11px;color:var(--mu);margin-top:2px}
+.snav{padding:14px 10px;flex:1}
+.nlbl{font-size:10px;font-weight:600;color:var(--mu2);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin-bottom:5px;margin-top:12px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;color:var(--mu);font-size:13px;transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
+.ni svg{width:15px;height:15px;flex-shrink:0}
+.ni:hover{background:var(--s2);color:var(--txt)}
+.ni.active{background:var(--acc2);color:var(--acc)}
+.sfoot{padding:14px 18px;border-top:1px solid var(--b)}
+.main{margin-left:var(--sw);flex:1;padding:26px 26px 60px;transition:margin-right .3s}
+.main.panel-open{margin-right:390px}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:10px;flex-wrap:wrap}
+.ptitle{font-size:21px;font-weight:600}
+.psub{font-size:12px;color:var(--mu);margin-top:3px}
+.ph-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.toggle-wrap{display:flex;background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:3px;gap:2px}
+.toggle-btn{font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;border:none;background:transparent;color:var(--mu);transition:all .15s}
+.toggle-btn.active{background:var(--acc);color:#000}
+.mes-sel{display:flex;gap:3px;background:var(--s2);padding:3px;border-radius:var(--rs);border:1px solid var(--b);flex-wrap:wrap}
+.mes-btn{font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;border:none;background:transparent;color:var(--mu);transition:all .15s}
+.mes-btn.active{background:var(--acc);color:#000}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.mc{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:16px}
+.mlbl{font-size:10px;color:var(--mu);margin-bottom:7px;text-transform:uppercase;letter-spacing:.05em}
+.mval{font-size:24px;font-weight:700;line-height:1}
+.msub{font-size:11px;color:var(--mu);margin-top:5px}
+.g2{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:14px}
+.g2w{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:16px}
+.ct{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
+.ct .ct-sub{color:var(--mu);font-size:11px;font-weight:400}
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{text-align:left;color:var(--mu);font-weight:500;padding:0 8px 9px 0;font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--b)}
+.dt td{padding:8px 8px 8px 0;border-bottom:1px solid var(--b);color:var(--txt);vertical-align:middle}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:rgba(255,255,255,0.015)}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.bg{background:rgba(170,255,0,.12);color:#aaff00}.ba{background:rgba(255,170,0,.12);color:#ffaa00}.br{background:rgba(255,77,77,.12);color:#ff4d4d}.bb{background:rgba(77,166,255,.12);color:#4da6ff}.bgr{background:rgba(255,255,255,.06);color:#888}
+.pb{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:5px}
+.pf{height:5px;border-radius:3px;transition:width .4s}
+.pfg{background:#aaff00}.pfa{background:#ffaa00}.pfr{background:#ff4d4d}.pfb{background:#4da6ff}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.cc{background:var(--s1);border:1px solid var(--b);border-radius:var(--r);padding:15px;margin-bottom:10px;transition:border-color .15s}
+.cc:hover{border-color:rgba(255,255,255,.15)}
+.cc-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.cc-i{display:flex;align-items:center;gap:10px}
+.cc-m{font-size:11px;color:var(--mu);margin-top:2px}
+.vp-wrap{margin-top:10px}
+.vp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.vp-label{font-size:11px;color:var(--mu)}
+.vp-count{font-size:13px;font-weight:700}
+.vp-dots{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+.vdot{width:16px;height:16px;border-radius:3px;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.vd-ok{background:rgba(170,255,0,.18);color:#aaff00;border:1px solid rgba(170,255,0,.3)}
+.vd-no{background:var(--s3);color:var(--mu2);border:1px solid var(--b)}
+.drive-link{font-size:11px;color:#4da6ff;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px;opacity:.75}
+.drive-link:hover{opacity:1}
+.dv{height:1px;background:var(--b);margin:12px 0}
+.fr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--b);font-size:12px}
+.fr:last-child{border-bottom:none}
+.cw{position:relative;height:195px}
+.cw-sm{position:relative;height:155px}
+.btn{padding:8px 16px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-acc{background:#aaff00;color:#000}.btn-acc:hover{background:#c8ff33}
+.btn-sec{background:var(--s2);color:var(--mu);border:1px solid var(--b2)}.btn-sec:hover{color:var(--txt);background:var(--s3)}
+.btn-red{background:rgba(255,77,77,.12);color:#ff4d4d;border:1px solid rgba(255,77,77,.2)}.btn-red:hover{background:rgba(255,77,77,.22)}
+.btn-blu{background:rgba(77,166,255,.12);color:#4da6ff;border:1px solid rgba(77,166,255,.2)}.btn-blu:hover{background:rgba(77,166,255,.25)}
+.btn-amb{background:rgba(255,170,0,.12);color:#ffaa00;border:1px solid rgba(255,170,0,.2)}.btn-amb:hover{background:rgba(255,170,0,.25)}
+.add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);background:#aaff00;color:#000;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:background .15s}
+.add-btn:hover{background:#c8ff33}
+.add-btn svg{width:14px;height:14px}
+.icon-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--s2);color:var(--mu);border:1px solid var(--b)}
+.icon-btn:hover{color:var(--txt);background:var(--s3)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:22px;width:500px;max-height:90vh;overflow-y:auto}
+.mh3{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.close-btn{background:none;border:none;color:var(--mu);cursor:pointer;font-size:18px;line-height:1;padding:0}
+.close-btn:hover{color:var(--txt)}
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:10px;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.finput{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rs);padding:8px 11px;color:var(--txt);font-size:13px;outline:none;transition:border-color .15s}
+.finput:focus{border-color:#aaff00}
+.finput option{background:var(--s2)}
+.frow-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.svc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.svc-chip{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--b2);color:var(--mu);background:var(--s2);transition:all .15s;user-select:none}
+.svc-chip.sel{background:rgba(170,255,0,.12);color:#aaff00;border-color:rgba(170,255,0,.28)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.slide-panel{position:fixed;top:0;right:-400px;width:380px;height:100vh;background:var(--s1);border-left:1px solid var(--b2);z-index:50;transition:right .3s;overflow-y:auto;display:flex;flex-direction:column}
+.slide-panel.open{right:0}
+.sp-header{padding:18px 20px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sp-title{font-size:15px;font-weight:600}
+.sp-body{padding:18px 20px;flex:1;overflow-y:auto}
+.sp-close{background:none;border:none;color:var(--mu);cursor:pointer;font-size:20px;line-height:1}
+.sp-close:hover{color:var(--txt)}
+.ped-editor{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:var(--rs);padding:14px;margin-bottom:16px}
+.ped-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.ped-stat{background:var(--s3);border-radius:8px;padding:11px}
+.ped-stat-lbl{font-size:9px;color:var(--mu);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.ped-stat-val{font-size:18px;font-weight:700}
+.ped-adelanto{background:var(--s2);border:1px solid var(--b2);border-radius:var(--rs);padding:14px;margin-bottom:14px}
+.pago-hist-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--b);font-size:12px}
+.pago-hist-item:last-child{border-bottom:none}
+.retiro-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--b);font-size:12px}
+.retiro-row:last-child{border-bottom:none}
+.monto-slider{width:100%;margin:10px 0;accent-color:#aaff00}
+.monto-display{font-size:24px;font-weight:700;color:#aaff00;text-align:center;margin:8px 0}
+.ed-deal-card{background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:12px;margin-bottom:8px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--mu2);border-radius:2px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid rgba(170,255,0,.28);color:var(--txt);padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.ddot{width:6px;height:6px;border-radius:50%;background:#aaff00;display:inline-block;margin-right:4px}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="slogo"><div class="brand">NXT Media</div><div class="sub">Panel de operaciones</div></div>
+  <nav class="snav">
+    <div class="nlbl">Principal</div>
+    <button class="ni active" onclick="showPage('resumen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Resumen
+    </button>
+    <button class="ni" onclick="showPage('clientes',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/></svg>Clientes
+    </button>
+    <button class="ni" onclick="showPage('finanzas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finanzas
+    </button>
+    <button class="ni" onclick="showPage('editores',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Editores
+    </button>
+    <div class="nlbl">Proyectos</div>
+    <button class="ni" onclick="showPage('contenido',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Contenido
+    </button>
+  </nav>
+  <div class="sfoot"><div style="font-size:11px;color:var(--mu)"><span class="ddot"></span> Drive conectado</div><div style="font-size:10px;color:var(--mu2);margin-top:3px">AGENCIA DE EDICION</div></div>
+</aside>
+
+<main class="main" id="main-content">
+<div class="page active" id="page-resumen">
+  <div class="ph">
+    <div><div class="ptitle">Resumen</div><div class="psub" id="res-sub">Vista general</div></div>
+    <div class="ph-r">
+      <div class="toggle-wrap">
+        <button class="toggle-btn" onclick="setResView('total',this)">Total</button>
+        <button class="toggle-btn active" onclick="setResView('mes',this)">Por mes</button>
+      </div>
+      <div class="mes-sel" id="mes-sel-resumen"></div>
+      <button class="add-btn" onclick="openModal('new')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo deal</button>
+    </div>
+  </div>
+  <div class="mg" id="res-metrics"></div>
+  <div class="g2">
+    <div class="card"><div class="ct">Ingresos por mes</div><div class="cw"><canvas id="cIngresos"></canvas></div></div>
+    <div class="card"><div class="ct">Ganancia neta</div><div class="cw"><canvas id="cGanancia"></canvas></div></div>
+  </div>
+  <div class="g2w">
+    <div class="card"><div class="ct">Videos pactados por mes</div><div class="cw-sm"><canvas id="cVideos"></canvas></div></div>
+    <div class="card"><div class="ct">Margen promedio %</div><div class="cw-sm"><canvas id="cMargen"></canvas></div></div>
+  </div>
+</div>
+
+<div class="page" id="page-clientes">
+  <div class="ph">
+    <div><div class="ptitle">Clientes</div><div class="psub">Estado del mes + progreso Drive</div></div>
+    <div class="ph-r">
+      <div class="mes-sel" id="mes-sel-clientes"></div>
+      <button class="add-btn" onclick="openModal('new')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo deal</button>
+    </div>
+  </div>
+  <div class="mg" id="cli-metrics"></div>
+  <div id="cli-list"></div>
+</div>
+
+<div class="page" id="page-finanzas">
+  <div class="ph">
+    <div><div class="ptitle">Finanzas</div><div class="psub">Ingresos, ganancias y retiros</div></div>
+    <div class="ph-r"><button class="btn btn-amb" onclick="openRetirarPanel()">Registrar retiro</button></div>
+  </div>
+  <div class="mg">
+    <div class="mc"><div class="mlbl">Total facturado</div><div class="mval" style="color:#aaff00" id="fin-total">--</div></div>
+    <div class="mc"><div class="mlbl">Total cobrado</div><div class="mval" id="fin-cobrado">--</div></div>
+    <div class="mc"><div class="mlbl">Ganancia neta total</div><div class="mval" style="color:#aaff00" id="fin-ganancia">--</div></div>
+    <div class="mc"><div class="mlbl">Total retirado</div><div class="mval" style="color:#4da6ff" id="fin-retirado">--</div><div class="msub" id="fin-disponible">--</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ct">Desglose mensual</div>
+      <table class="dt">
+        <thead><tr><th>Mes</th><th>Facturado</th><th>Cobrado</th><th>Ganancia</th><th>Margen</th><th>Deals</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bgr">Mar 26</span></td><td>$269</td><td>$269</td><td>$118</td><td><span class="badge ba">45%</span></td><td>2</td></tr>
+          <tr><td><span class="badge bgr">Abr 26</span></td><td>$1.658</td><td>$1.636</td><td>$823</td><td><span class="badge bg">50%</span></td><td>13</td></tr>
+          <tr><td><span class="badge bgr">May 26</span></td><td>$1.447</td><td>$1.272</td><td>$782</td><td><span class="badge bg">54%</span></td><td>9</td></tr>
+          <tr><td><span class="badge bb">Jun 26</span></td><td style="color:#aaff00;font-weight:600">$2.902</td><td>$2.649</td><td style="color:#aaff00;font-weight:600">$1.556</td><td><span class="badge bg">54%</span></td><td>16</td></tr>
+          <tr><td><span class="badge bgr">Jul 26</span></td><td>$258</td><td>$258</td><td>$138</td><td><span class="badge bg">53%</span></td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="ct">Pendiente cobrar <span class="ct-sub" style="color:#ffaa00">$428</span></div>
+        <div class="fr"><span>Guille (jun)</span><span style="color:#ffaa00">$181</span></div>
+        <div class="fr"><span>Cristian Argo (jun)</span><span style="color:#ffaa00">$72</span></div>
+        <div class="fr"><span>Sofi (may)</span><span style="color:#ffaa00">$47</span></div>
+        <div class="fr"><span>Miguel Aguado (may)</span><span style="color:#ffaa00">$128</span></div>
+        <div class="dv"></div>
+        <div class="fr"><b>Total</b><span style="color:#ffaa00;font-weight:700">$428</span></div>
+      </div>
+      <div class="card">
+        <div class="ct">Retiros registrados</div>
+        <div id="retiros-list"><div style="font-size:12px;color:var(--mu2);text-align:center;padding:12px">Sin retiros registrados</div></div>
+        <div class="dv"></div>
+        <div class="fr"><b>Total retirado</b><span style="color:#4da6ff;font-weight:700" id="retiros-total">$0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Pagos pendientes a editores <span class="ct-sub" style="color:#ff4d4d" id="pend-total-label">--</span></div>
+    <table class="dt">
+      <thead><tr><th>Editor</th><th>Cliente</th><th>Videos</th><th>Total</th><th>Pagado</th><th>Resta</th><th>Mes</th><th>Accion</th></tr></thead>
+      <tbody id="pag-ed-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="page" id="page-editores">
+  <div class="ph"><div><div class="ptitle">Editores</div><div class="psub">Deuda activa y gestion de pagos</div></div></div>
+  <div id="ed-deuda-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px"></div>
+  <div class="card">
+    <div class="ct">Deals con pago pendiente <span class="ct-sub" id="ed-pend-count"></span></div>
+    <div id="ed-deals-pend"></div>
+  </div>
+</div>
+
+<div class="page" id="page-contenido">
+  <div class="ph">
+    <div><div class="ptitle">Deals de contenido</div><div class="psub">Proyectos con copywriter + editor</div></div>
+    <div class="ph-r"><button class="add-btn" onclick="openModal('contenido')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo deal</button></div>
+  </div>
+  <div class="mg">
+    <div class="mc"><div class="mlbl">Deals activos</div><div class="mval" id="cont-total">--</div></div>
+    <div class="mc"><div class="mlbl">Valor total</div><div class="mval" style="color:#aaff00" id="cont-valor">--</div></div>
+    <div class="mc"><div class="mlbl">Cobrado</div><div class="mval" id="cont-cobrado">--</div></div>
+    <div class="mc"><div class="mlbl">Ganancia proyectada</div><div class="mval" style="color:#aaff00" id="cont-ganancia">--</div></div>
+  </div>
+  <div id="cont-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px"></div>
+  <div class="card">
+    <div class="ct">Pagos copywriters</div>
+    <table class="dt"><thead><tr><th>Mes</th><th>Nombre</th><th>Rol</th><th>Cliente</th><th>Monto</th><th>Estado</th></tr></thead>
+    <tbody id="copy-tbody"></tbody></table>
+  </div>
+</div>
+</main>
+
+<div class="overlay" id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <div class="mh3"><span id="modal-title">Deal</span><button class="close-btn" onclick="closeModal()">x</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="slide-panel" id="slide-panel">
+  <div class="sp-header"><div class="sp-title" id="sp-title">Panel</div><button class="sp-close" onclick="closePanel()">x</button></div>
+  <div class="sp-body" id="sp-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var MESES_ORDER=["2026-03","2026-04","2026-05","2026-06","2026-07"];
+var MESES_LBL={"2026-03":"Mar","2026-04":"Abr","2026-05":"May","2026-06":"Jun","2026-07":"Jul"};
+var DRIVE_FOLDERS={"Cris":"1_v_QgMvoCbHyC_7FgOwiXAJcEXN6oUpi","Guille":"1LTEVInXr0pzf4vpMVe7jHYXtbJu7MJIc","Tamar Gonzalez":"1Uc3L7bmPAuAc2V6LxixW1c9I5XWn-bkY","Bruno":"13hgQec6XfoGW9Bpf0agUkuhQ5qFvDMpg","Miguel Aguado":"1xS3o5QYLEEJJ0W-tj35Vrnxm1r8S7xwB","Pablo":"11FjTvEthrc3ru4gxMqtxq7tyID59brUx","Ruben":"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M","Ivan":"15VZkmzscwfYoJB5x5iUqrXw-nsLSRYyq","Ana Buzon":"13fxwPSM-PlPCiQ7RF3LkhSSwo7MD4Ho3","Mito":"176b5mGis_rFcIyDNYYW9e00ozq-TsbPe","Dani-G":"1R_vt8Z_8rrGO4Z9rzDaLfmqrcaZCntWT","Edu":"1LjAE5E8UsjnLIfVekhza-ekTEYS4psl-","Airam":"1t-0DR4PA9sk0Rb58bd6zEryvt0pe37BF","Diego Colungo":"17j4ceFfE6SXvD67ZW8KSRGFrRT30nmr_","Carlos gutierrez":"1jn5SZ1RONr-YrxX-uwkhJ8XVsuEMH8Di","Jaime":"1KPbcBd0hfWjNcTuTOXg0TzU5FmQaHoi1","Pablo Peribanez":"1lxCIXN9r1YqcJomsjYf5C-i0cAAFNyVq","Jose Luis":"14c8tZ0qIwg590phWnzOebKUOii26pT90"};
+var DRIVE_COUNTS={"1_v_QgMvoCbHyC_7FgOwiXAJcEXN6oUpi":17,"1LTEVInXr0pzf4vpMVe7jHYXtbJu7MJIc":18,"1Uc3L7bmPAuAc2V6LxixW1c9I5XWn-bkY":8,"13hgQec6XfoGW9Bpf0agUkuhQ5qFvDMpg":10,"1xS3o5QYLEEJJ0W-tj35Vrnxm1r8S7xwB":14,"11FjTvEthrc3ru4gxMqtxq7tyID59brUx":30,"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M":42,"15VZkmzscwfYoJB5x5iUqrXw-nsLSRYyq":0,"13fxwPSM-PlPCiQ7RF3LkhSSwo7MD4Ho3":15,"176b5mGis_rFcIyDNYYW9e00ozq-TsbPe":8,"1R_vt8Z_8rrGO4Z9rzDaLfmqrcaZCntWT":4,"1LjAE5E8UsjnLIfVekhza-ekTEYS4psl-":16,"1t-0DR4PA9sk0Rb58bd6zEryvt0pe37BF":9,"17j4ceFfE6SXvD67ZW8KSRGFrRT30nmr_":12,"1jn5SZ1RONr-YrxX-uwkhJ8XVsuEMH8Di":20,"1KPbcBd0hfWjNcTuTOXg0TzU5FmQaHoi1":6,"1lxCIXN9r1YqcJomsjYf5C-i0cAAFNyVq":20,"14c8tZ0qIwg590phWnzOebKUOii26pT90":30};
+var activeMes="2026-06";
+var resView="mes";
+var charts={};
+var retiros=[];
+var editoresPagos={};
+var nextId=37;
+var nextContId=3;
+
+var pagosPendientes=[
+  {ed:"Carmela",cl:"Aron",v:20,c:120,m:"May",fin:"08/06"},
+  {ed:"Mauri",cl:"Ruben",v:42,c:117,m:"May",fin:"10/07"},
+  {ed:"Caro",cl:"Sofi",v:8,c:40,m:"May",fin:"17/06"},
+  {ed:"Thiago V.",cl:"Bruno",v:14,c:132,m:"May",fin:"01/07"},
+  {ed:"Thiago V.",cl:"Miguel Aguado",v:20,c:120,m:"May",fin:"05/07"},
+  {ed:"Lourdes",cl:"Bruno",v:14,c:105,m:"Jun",fin:"01/07"},
+  {ed:"Carmela",cl:"Diego Colungo",v:16,c:112,m:"Jun",fin:"01/07"},
+  {ed:"Pipe",cl:"Mito",v:8,c:64,m:"Jun",fin:"01/07"},
+  {ed:"Agus V.",cl:"Aron",v:8,c:64,m:"Jun",fin:"02/07"},
+  {ed:"Andres",cl:"Aron astray",v:8,c:64,m:"Jun",fin:"02/07"},
+  {ed:"Gaby dom.",cl:"Guille",v:24,c:168,m:"Jun",fin:"15/06"},
+  {ed:"Carmela",cl:"Pablo P.",v:20,c:130,m:"Jun",fin:"04/07"},
+  {ed:"Gaston",cl:"Jaime",v:6,c:35,m:"Jun",fin:"04/07"},
+  {ed:"Gaby dom.",cl:"Ana Buzon",v:20,c:130,m:"Jun",fin:"06/07"},
+  {ed:"Thiago V.",cl:"Tamar G.",v:8,c:70,m:"Jun",fin:"06/07"},
+  {ed:"Juan L.",cl:"Cristian A.",v:8,c:72,m:"Jun",fin:"08/07"},
+  {ed:"Gaby dom.",cl:"Cris",v:20,c:130,m:"Jun",fin:"10/07"},
+  {ed:"Thiago V.",cl:"Carlos G.",v:20,c:140,m:"Jun",fin:"---"},
+  {ed:"Andres",cl:"Fran moro",v:1,c:15,m:"Jun",fin:"17/06"},
+  {ed:"Caro",cl:"Boni",v:4,c:28,m:"Jun",fin:"30/06"},
+  {ed:"Thiago V.",cl:"Unai",v:20,c:120,m:"Jul",fin:"23/08"}
+];
+
+var deals=[
+  {id:1,mes:"2026-03",cliente:"Sergio Sabio",editor:"Pipe",videos:14,precio:194,cobrado:194,ganancia:82,margen:0.42,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:2,mes:"2026-03",cliente:"Ruben",editor:"Mauri",videos:14,precio:75,cobrado:75,ganancia:35.8,margen:0.48,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M"},
+  {id:3,mes:"2026-04",cliente:"Edu",editor:"Mauri",videos:11,precio:179,cobrado:179,ganancia:102,margen:0.57,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1LjAE5E8UsjnLIfVekhza-ekTEYS4psl-"},
+  {id:4,mes:"2026-04",cliente:"Ruben",editor:"Mauri",videos:14,precio:75,cobrado:75,ganancia:35.8,margen:0.48,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M"},
+  {id:5,mes:"2026-04",cliente:"Pablo",editor:"Carmela",videos:30,precio:268,cobrado:268,ganancia:118,margen:0.44,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"11FjTvEthrc3ru4gxMqtxq7tyID59brUx"},
+  {id:6,mes:"2026-04",cliente:"Airam",editor:"Lourdes",videos:9,precio:158.73,cobrado:158.73,ganancia:78.73,margen:0.50,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1t-0DR4PA9sk0Rb58bd6zEryvt0pe37BF"},
+  {id:7,mes:"2026-04",cliente:"Daniela",editor:"Fabri",videos:8,precio:144,cobrado:144,ganancia:74,margen:0.51,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:8,mes:"2026-04",cliente:"Usa",editor:"Gaston",videos:8,precio:141,cobrado:141,ganancia:65.8,margen:0.47,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:9,mes:"2026-04",cliente:"Mito",editor:"Pipe",videos:6,precio:141,cobrado:141,ganancia:87,margen:0.62,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"176b5mGis_rFcIyDNYYW9e00ozq-TsbPe"},
+  {id:10,mes:"2026-04",cliente:"Pablo Peribanez",editor:"Carmela",videos:20,precio:253,cobrado:253,ganancia:123,margen:0.49,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1lxCIXN9r1YqcJomsjYf5C-i0cAAFNyVq"},
+  {id:11,mes:"2026-05",cliente:"Aron",editor:"Carmela",videos:20,precio:300,cobrado:300,ganancia:180,margen:0.60,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:12,mes:"2026-05",cliente:"Jaime",editor:"Gaston",videos:6,precio:66.57,cobrado:66.57,ganancia:31.59,margen:0.47,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1KPbcBd0hfWjNcTuTOXg0TzU5FmQaHoi1"},
+  {id:13,mes:"2026-05",cliente:"Ruben",editor:"Mauri",videos:14,precio:73.87,cobrado:73.87,ganancia:34.67,margen:0.47,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M"},
+  {id:14,mes:"2026-05",cliente:"Sergi",editor:"Lourdes",videos:6,precio:59,cobrado:59,ganancia:23,margen:0.39,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:15,mes:"2026-05",cliente:"Ruben",editor:"Mauri",videos:42,precio:258,cobrado:258,ganancia:141,margen:0.55,pagoEd:"Pendiente",servicios:["Reels IG/TikTok","Videos YouTube"],drive:"1xxrLIZ5-RIZL0ttr_DzhU0ezevK7T19M"},
+  {id:16,mes:"2026-05",cliente:"Miguel",editor:"Lourdes",videos:5,precio:100,cobrado:100,ganancia:55,margen:0.55,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:17,mes:"2026-05",cliente:"Edu",editor:"Mauri",videos:16,precio:240,cobrado:240,ganancia:128,margen:0.53,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:"1LjAE5E8UsjnLIfVekhza-ekTEYS4psl-"},
+  {id:18,mes:"2026-05",cliente:"Sofi",editor:"Caro",videos:8,precio:93.16,cobrado:46.58,ganancia:53.16,margen:0.57,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:19,mes:"2026-05",cliente:"Miguel Aguado",editor:"Thiago Valentino",videos:20,precio:256,cobrado:128,ganancia:136,margen:0.53,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1xS3o5QYLEEJJ0W-tj35Vrnxm1r8S7xwB"},
+  {id:20,mes:"2026-06",cliente:"Bruno",editor:"Lourdes",videos:14,precio:229.38,cobrado:229.38,ganancia:124.38,margen:0.54,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"13hgQec6XfoGW9Bpf0agUkuhQ5qFvDMpg"},
+  {id:21,mes:"2026-06",cliente:"Dani-G",editor:"Thiago valentino",videos:4,precio:77,cobrado:77,ganancia:30,margen:0.39,pagoEd:"Hecho",servicios:["Recortes de clips"],drive:"1R_vt8Z_8rrGO4Z9rzDaLfmqrcaZCntWT"},
+  {id:22,mes:"2026-06",cliente:"Sergi",editor:"Lourdes",videos:6,precio:60,cobrado:60,ganancia:23.99,margen:0.40,pagoEd:"Hecho",servicios:["Reels IG/TikTok"],drive:""},
+  {id:23,mes:"2026-06",cliente:"Diego Colungo",editor:"Carmela",videos:16,precio:234,cobrado:234,ganancia:122,margen:0.52,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"17j4ceFfE6SXvD67ZW8KSRGFrRT30nmr_"},
+  {id:24,mes:"2026-06",cliente:"Mito",editor:"Pipe",videos:8,precio:143.5,cobrado:143.5,ganancia:79.5,margen:0.55,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"176b5mGis_rFcIyDNYYW9e00ozq-TsbPe"},
+  {id:25,mes:"2026-06",cliente:"Aron astray",editor:"Andres",videos:8,precio:145,cobrado:145,ganancia:81,margen:0.56,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:26,mes:"2026-06",cliente:"Guille",editor:"Gaby domingo",videos:24,precio:362,cobrado:181,ganancia:194,margen:0.54,pagoEd:"Pendiente",servicios:["Reels IG/TikTok","Videos YouTube"],drive:"1LTEVInXr0pzf4vpMVe7jHYXtbJu7MJIc"},
+  {id:27,mes:"2026-06",cliente:"Pablo Peribanez",editor:"Carmela",videos:20,precio:255.88,cobrado:255.88,ganancia:125.88,margen:0.49,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1lxCIXN9r1YqcJomsjYf5C-i0cAAFNyVq"},
+  {id:28,mes:"2026-06",cliente:"Jaime",editor:"Gaston",videos:6,precio:68.8,cobrado:68.8,ganancia:33.8,margen:0.49,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1KPbcBd0hfWjNcTuTOXg0TzU5FmQaHoi1"},
+  {id:29,mes:"2026-06",cliente:"Ana Buzon",editor:"Gaby domingo",videos:20,precio:298.06,cobrado:298.06,ganancia:168.06,margen:0.56,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"13fxwPSM-PlPCiQ7RF3LkhSSwo7MD4Ho3"},
+  {id:30,mes:"2026-06",cliente:"Tamar Gonzalez",editor:"Thiago valentino",videos:8,precio:164.97,cobrado:164.97,ganancia:94.97,margen:0.58,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1Uc3L7bmPAuAc2V6LxixW1c9I5XWn-bkY"},
+  {id:31,mes:"2026-06",cliente:"Cristian Argo",editor:"Juan lopez",videos:8,precio:144,cobrado:72,ganancia:72,margen:0.50,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:32,mes:"2026-06",cliente:"Cris",editor:"Gaby domingo",videos:20,precio:295,cobrado:295,ganancia:165,margen:0.56,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1_v_QgMvoCbHyC_7FgOwiXAJcEXN6oUpi"},
+  {id:33,mes:"2026-06",cliente:"Carlos gutierrez",editor:"Thiago valentino",videos:20,precio:295,cobrado:295,ganancia:155,margen:0.53,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:"1jn5SZ1RONr-YrxX-uwkhJ8XVsuEMH8Di"},
+  {id:34,mes:"2026-06",cliente:"Fran moro",editor:"Andres",videos:1,precio:39,cobrado:39,ganancia:24,margen:0.62,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:35,mes:"2026-06",cliente:"Boni",editor:"Caro",videos:4,precio:90,cobrado:90,ganancia:62,margen:0.69,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""},
+  {id:36,mes:"2026-07",cliente:"Unai",editor:"Thiago valentino",videos:20,precio:258,cobrado:258,ganancia:138,margen:0.53,pagoEd:"Pendiente",servicios:["Reels IG/TikTok"],drive:""}
+];
+
+var contenidoDeals=[
+  {id:1,mes:"2026-04",cliente:"Jose Luis",copywriter:"Tiago",editor:"Lourdes",inicio:"20/04/2026",entrega:"27/06/2026",estado:"En curso",precio:930,cobrado:930,pendiente:0,costoCopy:300,pagoCopy:"Pendiente",videos:30,costoEditor:180,pagoEditor:"Pendiente",ganancia:450,notas:""},
+  {id:2,mes:"2026-04",cliente:"Juanse Garay",copywriter:"Tiago",editor:"Mauri",inicio:"04/05/2026",entrega:"04/08/2026",estado:"En curso",precio:1110,cobrado:555,pendiente:555,costoCopy:400,pagoCopy:"Pendiente",videos:36,costoEditor:200,pagoEditor:"Pendiente",ganancia:510,notas:""}
+];
+
+var SVCS=["Reels IG/TikTok","Videos YouTube","Recortes de clips","Stories/Shorts","Video institucional","Highlights","Behind the scenes"];
+var EDITORS=["Pipe","Mauri","Carmela","Lourdes","Fabri","Gaston","Thiago Valentino","Gaby domingo","Caro","Andres","Juan lopez","Agus vazquez"];
+
+function initEdPagos(){
+  pagosPendientes.forEach(function(p){
+    var k=p.ed+"|"+p.cl+"|"+p.m;
+    editoresPagos[k]={total:p.c,pagado:0,adelantos:[]};
+  });
+}
+
+function getClientes(){return[].concat(deals.map(function(d){return d.cliente})).filter(function(v,i,a){return a.indexOf(v)===i}).sort()}
+function getColor(n){var c=["#aaff00","#4da6ff","#ffaa00","#cc88ff","#00ccff","#ff88aa","#5dca5d","#ff7744"];return c[(n.charCodeAt(0)+(n.charCodeAt(1)||0))%c.length]}
+function initials(n){return n.split(" ").map(function(w){return w[0]}).join("").slice(0,2).toUpperCase()}
+function fmtMes(m){var map={"2026-03":"Mar 26","2026-04":"Abr 26","2026-05":"May 26","2026-06":"Jun 26","2026-07":"Jul 26"};return map[m]||m}
+function driveUrl(id){return id?"https://drive.google.com/drive/folders/"+id:""}
+function getDriveId(deal){return deal.drive||DRIVE_FOLDERS[deal.cliente]||""}
+function getDriveCount(deal){var id=getDriveId(deal);if(!id)return null;return DRIVE_COUNTS[id]!=null?DRIVE_COUNTS[id]:null}
+function fmt(n){return"$"+Math.round(n).toLocaleString("es-AR")}
+function today(){return new Date().toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"})}
+function totalPendienteEditores(){return pagosPendientes.reduce(function(s,p){var k=p.ed+"|"+p.cl+"|"+p.m;var ep=editoresPagos[k];return s+(ep?Math.max(0,p.c-ep.pagado):p.c)},0)}
+
+function showPage(id,btn){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active")});
+  document.querySelectorAll(".ni").forEach(function(n){n.classList.remove("active")});
+  document.getElementById("page-"+id).classList.add("active");
+  btn.classList.add("active");
+  closePanel();
+}
+
+function buildMesSels(){
+  ["resumen","clientes"].forEach(function(p){
+    var el=document.getElementById("mes-sel-"+p);
+    if(!el)return;
+    if(p==="resumen"&&resView==="total"){el.style.display="none";return;}
+    el.style.display="flex";el.innerHTML="";
+    MESES_ORDER.forEach(function(m){
+      var b=document.createElement("button");
+      b.className="mes-btn"+(m===activeMes?" active":"");
+      b.textContent=MESES_LBL[m]||m;
+      b.onclick=function(){activeMes=m;buildMesSels();renderAll();};
+      el.appendChild(b);
+    });
+  });
+}
+
+function setResView(v,btn){
+  resView=v;
+  document.querySelectorAll(".toggle-btn").forEach(function(b){b.classList.remove("active")});
+  btn.classList.add("active");
+  buildMesSels();renderResumen();
+}
+
+var ACC="#aaff00",ACCD="rgba(170,255,0,0.12)",GRC="rgba(255,255,255,0.04)",TC="#666";
+var BOPTS={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#222",titleColor:"#aaa",bodyColor:"#f0f0f0",borderColor:"#333",borderWidth:1}},scales:{x:{grid:{color:GRC},ticks:{color:TC,font:{size:11}}},y:{grid:{color:GRC},ticks:{color:TC,font:{size:11}}}}};
+
+function buildCharts(){
+  var labels=MESES_ORDER.map(function(m){return MESES_LBL[m]});
+  var ing=MESES_ORDER.map(function(m){return Math.round(deals.filter(function(d){return d.mes===m}).reduce(function(s,d){return s+d.precio},0))});
+  var gan=MESES_ORDER.map(function(m){return Math.round(deals.filter(function(d){return d.mes===m}).reduce(function(s,d){return s+d.ganancia},0))});
+  var vid=MESES_ORDER.map(function(m){return deals.filter(function(d){return d.mes===m}).reduce(function(s,d){return s+d.videos},0)});
+  var mar=MESES_ORDER.map(function(m){var ds=deals.filter(function(d){return d.mes===m});return ds.length?Math.round(ds.reduce(function(s,d){return s+d.margen},0)/ds.length*100):0});
+  var bgs=MESES_ORDER.map(function(m){return m===activeMes&&resView==="mes"?ACC:ACCD});
+  ["ing","gan","vid","mar"].forEach(function(k){if(charts[k])charts[k].destroy()});
+  charts.ing=new Chart(document.getElementById("cIngresos"),{type:"bar",data:{labels:labels,datasets:[{data:ing,backgroundColor:bgs,borderRadius:6,borderSkipped:false}]},options:BOPTS});
+  charts.gan=new Chart(document.getElementById("cGanancia"),{type:"line",data:{labels:labels,datasets:[{data:gan,borderColor:ACC,backgroundColor:"rgba(170,255,0,0.06)",tension:0.4,fill:true,pointBackgroundColor:ACC,pointRadius:4}]},options:BOPTS});
+  charts.vid=new Chart(document.getElementById("cVideos"),{type:"bar",data:{labels:labels,datasets:[{data:vid,backgroundColor:bgs,borderRadius:5,borderSkipped:false}]},options:BOPTS});
+  var mOpts=JSON.parse(JSON.stringify(BOPTS));
+  mOpts.scales.y.ticks.callback=function(v){return v+"%"};
+  charts.mar=new Chart(document.getElementById("cMargen"),{type:"line",data:{labels:labels,datasets:[{data:mar,borderColor:"#4da6ff",backgroundColor:"rgba(77,166,255,0.06)",tension:0.4,fill:true,pointBackgroundColor:"#4da6ff",pointRadius:4}]},options:mOpts});
+}
+
+function renderResumen(){
+  var ds=resView==="total"?deals:deals.filter(function(d){return d.mes===activeMes});
+  var ing=ds.reduce(function(s,d){return s+d.precio},0);
+  var gan=ds.reduce(function(s,d){return s+d.ganancia},0);
+  var pend=ds.reduce(function(s,d){return s+(d.precio-d.cobrado)},0);
+  var mar=ds.length?ds.reduce(function(s,d){return s+d.margen},0)/ds.length*100:0;
+  document.getElementById("res-sub").textContent=resView==="total"?"Acumulado historico NXT Media":"Vista mensual - "+fmtMes(activeMes);
+  document.getElementById("res-metrics").innerHTML='<div class="mc"><div class="mlbl">Ingresos '+(resView==="total"?"total":fmtMes(activeMes))+'</div><div class="mval" style="color:#aaff00">'+fmt(ing)+'</div><div class="msub">'+ds.length+' deals</div></div><div class="mc"><div class="mlbl">Ganancia neta</div><div class="mval">'+fmt(gan)+'</div><div class="msub">Margen '+Math.round(mar)+'%</div></div><div class="mc"><div class="mlbl">Pendiente cobrar</div><div class="mval" style="color:'+(pend>0?"#ffaa00":"#aaff00")+'">'+fmt(pend)+'</div></div><div class="mc"><div class="mlbl">Por pagar editores</div><div class="mval" style="color:#ff4d4d">'+fmt(totalPendienteEditores())+'</div><div class="msub">pendiente</div></div>';
+  buildCharts();
+}
+
+function renderClientes(){
+  var ds=deals.filter(function(d){return d.mes===activeMes});
+  document.getElementById("cli-metrics").innerHTML='<div class="mc"><div class="mlbl">Clientes '+fmtMes(activeMes)+'</div><div class="mval" style="color:#aaff00">'+ds.length+'</div></div><div class="mc"><div class="mlbl">Cobro completo</div><div class="mval" style="color:#aaff00">'+ds.filter(function(d){return Math.abs(d.precio-d.cobrado)<0.01}).length+'</div><div class="msub">de '+ds.length+'</div></div><div class="mc"><div class="mlbl">Con Drive</div><div class="mval">'+ds.filter(function(d){return getDriveId(d)}).length+'</div></div><div class="mc"><div class="mlbl">Videos pactados</div><div class="mval">'+ds.reduce(function(s,d){return s+d.videos},0)+'</div></div>';
+  var list=document.getElementById("cli-list");
+  list.innerHTML="";
+  ds.sort(function(a,b){return b.precio-a.precio}).forEach(function(deal){
+    var col=getColor(deal.cliente);
+    var driveId=getDriveId(deal);
+    var count=getDriveCount(deal);
+    var pct=count!=null?Math.min(100,Math.round(count/deal.videos*100)):null;
+    var cobPct=Math.round(deal.cobrado/deal.precio*100);
+    var svcB=(deal.servicios||[]).map(function(s){return'<span class="badge bb" style="margin-right:2px;font-size:9px">'+s+'</span>'}).join("");
+    var prevM=deals.filter(function(d){return d.cliente===deal.cliente&&d.mes!==activeMes});
+    var ph="";
+    if(count!=null){
+      var bc=pct>=100?"pfg":pct>=50?"pfa":"pfr";
+      var max=Math.min(deal.videos,48);
+      var dots="";
+      for(var i=0;i<max;i++){dots+='<div class="vdot '+(i<count?"vd-ok":"vd-no")+'">'+(i<count?"v":"")+"</div>";}
+      ph='<div class="vp-wrap"><div class="vp-top"><span class="vp-label">Videos Drive</span><span class="vp-count" style="color:'+(pct>=100?"#aaff00":pct>=50?"#ffaa00":"#ff4d4d")+'">'+count+" / "+deal.videos+'</span></div><div class="pb"><div class="pf '+bc+'" style="width:'+pct+'%"></div></div><div class="vp-dots">'+dots+(deal.videos>48?'<span style="font-size:10px;color:var(--mu);align-self:center">+'+(deal.videos-48)+"</span>":"")+"</div>"+(driveId?'<a href="'+driveUrl(driveId)+'" target="_blank" class="drive-link">Abrir Drive</a>':"")+"</div>";
+    } else {
+      ph='<div style="font-size:11px;color:var(--mu2);margin-top:8px">Sin carpeta Drive - '+deal.videos+" videos pactados</div>";
+    }
+    list.innerHTML+='<div class="cc"><div class="cc-h"><div class="cc-i"><div class="av" style="background:'+col+'22;color:'+col+'">'+initials(deal.cliente)+'</div><div><div style="font-weight:600;font-size:14px">'+deal.cliente+'</div><div class="cc-m">'+deal.editor+" - "+(svcB||"---")+'</div></div></div><div style="display:flex;align-items:center;gap:7px"><div style="text-align:right"><div style="font-size:16px;font-weight:700;color:'+col+'">'+fmt(deal.precio)+'</div><div style="font-size:11px;color:'+(cobPct===100?"#aaff00":"#ffaa00")+'">'+(cobPct===100?"Cobrado":cobPct+"% cobrado")+'</div></div><button class="icon-btn" onclick="openModal(\'edit\','+deal.id+')">Editar</button>'+(prevM.length>0?'<button class="btn btn-blu" style="font-size:11px;padding:5px 9px" onclick="openModal(\'renov\',\''+deal.cliente+'\')">Renovar</button>':"")+"</div></div>"+ph+"</div>";
+  });
+}
+
+function renderFinanzas(){
+  var tI=deals.reduce(function(s,d){return s+d.precio},0);
+  var tC=deals.reduce(function(s,d){return s+d.cobrado},0);
+  var tG=deals.reduce(function(s,d){return s+d.ganancia},0);
+  var tR=retiros.reduce(function(s,r){return s+r.monto},0);
+  document.getElementById("fin-total").textContent=fmt(tI);
+  document.getElementById("fin-cobrado").textContent=fmt(tC);
+  document.getElementById("fin-ganancia").textContent=fmt(tG);
+  document.getElementById("fin-retirado").textContent=fmt(tR);
+  document.getElementById("fin-disponible").textContent="Disponible: "+fmt(tG-tR);
+  document.getElementById("retiros-total").textContent=fmt(tR);
+  var rL=document.getElementById("retiros-list");
+  if(retiros.length>0){rL.innerHTML=retiros.map(function(r){return'<div class="retiro-row"><div><div style="font-weight:500">'+r.concepto+'</div><div style="font-size:11px;color:var(--mu)">'+r.fecha+'</div></div><span style="color:#4da6ff;font-weight:600">'+fmt(r.monto)+"</span></div>"}).join("");}
+  else{rL.innerHTML='<div style="font-size:12px;color:var(--mu2);text-align:center;padding:12px">Sin retiros registrados</div>';}
+  document.getElementById("pend-total-label").textContent=fmt(totalPendienteEditores());
+  document.getElementById("pag-ed-tbody").innerHTML=pagosPendientes.map(function(p){
+    var k=p.ed+"|"+p.cl+"|"+p.m;
+    var ep=editoresPagos[k]||{total:p.c,pagado:0};
+    var resta=Math.max(0,p.c-ep.pagado);
+    return"<tr><td>"+p.ed+"</td><td>"+p.cl+"</td><td>"+p.v+"</td><td>"+fmt(p.c)+'</td><td style="color:'+(ep.pagado>0?"#aaff00":"var(--mu)")+'">'+fmt(ep.pagado)+'</td><td style="color:'+(resta>0?"#ff4d4d":"#aaff00")+'">'+( resta>0?fmt(resta):"OK")+"</td><td>"+p.m+"</td><td>"+(resta>0?'<button class="btn btn-acc" style="font-size:11px;padding:4px 9px" onclick="openPagoEditorPanel(\''+k+'\','+p.c+')">Pagar</button>':'<span class="badge bg">Listo</span>')+"</td></tr>";
+  }).join("");
+}
+
+function renderEditores(){
+  var byEd={};
+  pagosPendientes.forEach(function(p){
+    var k=p.ed+"|"+p.cl+"|"+p.m;
+    var ep=editoresPagos[k]||{total:p.c,pagado:0};
+    var resta=Math.max(0,p.c-ep.pagado);
+    if(!byEd[p.ed])byEd[p.ed]={deuda:0,deals:0,adelantado:0};
+    byEd[p.ed].deuda+=resta;byEd[p.ed].deals++;byEd[p.ed].adelantado+=(ep.pagado||0);
+  });
+  var grid=document.getElementById("ed-deuda-grid");
+  grid.innerHTML="";
+  Object.keys(byEd).filter(function(n){return byEd[n].deuda>0}).sort(function(a,b){return byEd[b].deuda-byEd[a].deuda}).forEach(function(nombre){
+    var data=byEd[nombre];
+    var col=getColor(nombre);
+    var pct=Math.round(data.adelantado/(data.deuda+data.adelantado)*100)||0;
+    grid.innerHTML+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:9px"><div class="av" style="background:'+col+'22;color:'+col+';width:36px;height:36px;font-size:13px">'+initials(nombre)+'</div><div style="font-weight:600">'+nombre+'</div></div><button class="btn btn-acc" style="font-size:11px;padding:5px 10px" onclick="openEditorDealsPanel(\''+nombre+'\')">Gestionar</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div style="background:var(--s2);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--mu);margin-bottom:3px">DEUDA ACTUAL</div><div style="font-size:18px;font-weight:700;color:#ff4d4d">'+fmt(data.deuda)+'</div></div><div style="background:var(--s2);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--mu);margin-bottom:3px">ADELANTADO</div><div style="font-size:18px;font-weight:700;color:#4da6ff">'+fmt(data.adelantado)+'</div></div></div><div style="font-size:11px;color:var(--mu);margin-bottom:5px">'+data.deals+' deal'+(data.deals>1?"s":"")+" pendientes</div>"+(pct>0?'<div class="pb"><div class="pf pfb" style="width:'+pct+'%"></div></div><div style="font-size:10px;color:var(--mu);margin-top:3px">'+pct+"% adelantado</div>":"")+"</div>";
+  });
+  var pendCount=pagosPendientes.filter(function(p){var k=p.ed+"|"+p.cl+"|"+p.m;var ep=editoresPagos[k];return!ep||ep.pagado<p.c;}).length;
+  document.getElementById("ed-pend-count").textContent=pendCount+" pendientes";
+  document.getElementById("ed-deals-pend").innerHTML=pagosPendientes.map(function(p){
+    var k=p.ed+"|"+p.cl+"|"+p.m;
+    var ep=editoresPagos[k]||{total:p.c,pagado:0};
+    var resta=Math.max(0,p.c-ep.pagado);
+    if(resta<=0)return"";
+    var col=getColor(p.ed);
+    return'<div class="ed-deal-card"><div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:8px"><div class="av" style="background:'+col+'22;color:'+col+';width:28px;height:28px;font-size:10px">'+initials(p.ed)+'</div><div><div style="font-size:13px;font-weight:600">'+p.ed+" -- "+p.cl+'</div><div style="font-size:11px;color:var(--mu)">'+p.m+" - "+p.v+" videos - Entrega: "+p.fin+'</div></div></div><div style="display:flex;align-items:center;gap:8px"><div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#ff4d4d">'+fmt(resta)+'</div>'+(ep.pagado>0?'<div style="font-size:10px;color:#4da6ff">Adelantado: '+fmt(ep.pagado)+"</div>":"")+'</div><button class="btn btn-acc" style="font-size:11px;padding:5px 9px" onclick="openPagoEditorPanel(\''+k+'\','+p.c+')">Pagar</button></div></div></div>';
+  }).join("");
+}
+
+function renderContenido(){
+  var total=contenidoDeals.reduce(function(s,d){return s+d.precio},0);
+  var cob=contenidoDeals.reduce(function(s,d){return s+d.cobrado},0);
+  var gan=contenidoDeals.reduce(function(s,d){return s+d.ganancia},0);
+  document.getElementById("cont-total").textContent=contenidoDeals.length;
+  document.getElementById("cont-valor").textContent=fmt(total);
+  document.getElementById("cont-cobrado").textContent=fmt(cob);
+  document.getElementById("cont-ganancia").textContent=fmt(gan);
+  document.getElementById("cont-cards").innerHTML=contenidoDeals.map(function(d){
+    return'<div class="card"><div class="ct">'+d.cliente+'<div style="display:flex;gap:6px"><span class="badge bb">'+d.estado+'</span><button class="icon-btn" onclick="openModal(\'editCont\','+d.id+')">Editar</button></div></div><div class="fr"><span style="color:var(--mu)">Copywriter</span><span>'+d.copywriter+'</span></div><div class="fr"><span style="color:var(--mu)">Editor</span><span>'+d.editor+'</span></div><div class="fr"><span style="color:var(--mu)">Videos</span><span>'+d.videos+'</span></div><div class="fr"><span style="color:var(--mu)">Periodo</span><span style="font-size:11px">'+d.inicio+" -- "+d.entrega+'</span></div><div class="dv"></div><div class="fr"><span style="color:var(--mu)">Precio</span><span style="color:#aaff00;font-weight:700">'+fmt(d.precio)+'</span></div><div class="fr"><span style="color:var(--mu)">Cobrado</span><span style="color:'+(d.cobrado>=d.precio?"#aaff00":"#ffaa00")+'">'+fmt(d.cobrado)+" ("+Math.round(d.cobrado/d.precio*100)+'%)</span></div>'+(d.pendiente>0?'<div class="fr"><span style="color:var(--mu)">Pendiente</span><span style="color:#ff4d4d">'+fmt(d.pendiente)+"</span></div>":"")+'<div class="fr"><span style="color:var(--mu)">Costo copy</span><span>'+fmt(d.costoCopy)+' <span class="badge '+(d.pagoCopy==="Pendiente"?"ba":"bg")+'">'+d.pagoCopy+"</span></span></div>"+'<div class="fr"><span style="color:var(--mu)">Costo editor</span><span>'+fmt(d.costoEditor)+' <span class="badge '+(d.pagoEditor==="Pendiente"?"ba":"bg")+'">'+d.pagoEditor+"</span></span></div>"+'<div class="dv"></div><div class="fr"><b>Ganancia neta</b><span style="color:#aaff00;font-weight:700">'+fmt(d.ganancia)+"</span></div>"+(d.notas?'<div style="font-size:11px;color:var(--mu);margin-top:8px;background:var(--s2);padding:8px;border-radius:6px">'+d.notas+"</div>":"")+"</div>";
+  }).join("");
+  document.getElementById("copy-tbody").innerHTML='<tr><td>May 2026</td><td>Tiago</td><td>Copywriter</td><td>Jose Luis</td><td>$150</td><td><span class="badge bg">Pagado</span></td></tr><tr><td>Jun 2026</td><td>Tiago</td><td>Copywriter</td><td>Juanse</td><td>$133</td><td><span class="badge bg">Pagado</span></td></tr>';
+}
+
+function renderAll(){renderResumen();renderClientes();renderFinanzas();renderEditores();renderContenido();}
+
+function openModal(mode,idOrCliente){
+  document.getElementById("modal-overlay").classList.add("open");
+  document.getElementById("modal-title").textContent=mode==="new"?"Nuevo deal":mode==="edit"?"Editar deal":mode==="renov"?"Renovar cliente":mode==="editCont"?"Editar deal contenido":"Nuevo deal contenido";
+  if(mode==="new"){document.getElementById("modal-body").innerHTML=dealForm(null);}
+  else if(mode==="edit"){var deal=null;for(var i=0;i<deals.length;i++){if(deals[i].id===idOrCliente){deal=deals[i];break;}}document.getElementById("modal-body").innerHTML=dealForm(deal);}
+  else if(mode==="renov"){var prev=null,prevM=deals.filter(function(d){return d.cliente===idOrCliente}).sort(function(a,b){return b.mes.localeCompare(a.mes)});if(prevM.length)prev=prevM[0];document.getElementById("modal-body").innerHTML=dealForm(prev,true,idOrCliente);}
+  else if(mode==="editCont"){var dc=null;for(var i=0;i<contenidoDeals.length;i++){if(contenidoDeals[i].id===idOrCliente){dc=contenidoDeals[i];break;}}document.getElementById("modal-body").innerHTML=contenidoForm(dc);}
+  else if(mode==="contenido"){document.getElementById("modal-body").innerHTML=contenidoForm(null);}
+  populateClienteDatalist();
+}
+
+function dealForm(deal,isRenov,renovCliente){
+  var d=deal||{};
+  var svcs=SVCS.map(function(s){return'<div class="svc-chip'+(((d.servicios||[]).indexOf(s)>-1)?" sel":"")+'" data-v="'+s+'" onclick="this.classList.toggle(\'sel\')">'+s+"</div>"}).join("");
+  var edOpts=EDITORS.map(function(e){return"<option"+(d.editor===e?" selected":"")+">"+e+"</option>"}).join("");
+  var cobVal=d.cobrado&&d.precio?Math.round(d.cobrado/d.precio*100):0;
+  return'<input type="hidden" id="f-id" value="'+(d.id||"")+'"><div class="frow"><label>Cliente</label><input list="cli-dl" id="f-cliente" class="finput" value="'+(isRenov?renovCliente:(d.cliente||""))+'" placeholder="Cliente..."><datalist id="cli-dl"></datalist></div><div class="frow-2"><div><label>Editor</label><select id="f-editor" class="finput"><option value="">Seleccionar...</option>'+edOpts+'</select></div><div><label>Mes</label><input id="f-mes" type="month" class="finput" value="'+(isRenov?"":d.mes||"2026-06")+'"></div></div><div class="frow-2"><div><label>Videos pactados</label><input id="f-videos" type="number" class="finput" value="'+(d.videos||"")+'" placeholder="20"></div><div><label>Precio ($)</label><input id="f-precio" type="number" class="finput" value="'+(d.precio||"")+'" placeholder="250" step="0.01"></div></div><div class="frow"><label>Servicios</label><div class="svc-chips">'+svcs+'</div></div><div class="frow"><label>Cobro</label><select id="f-cobro" class="finput"><option value="0"'+(cobVal<25?" selected":"")+'>0% - Pendiente</option><option value="50"'+(cobVal>=25&&cobVal<75?" selected":"")+'>50% - Mitad</option><option value="100"'+(cobVal>=75?" selected":"")+'>100% - Completo</option></select></div><div class="frow"><label>Link Drive</label><input id="f-drive" class="finput" placeholder="https://drive.google.com/drive/folders/..." value="'+(d.drive?driveUrl(d.drive):"")+'"></div>'+(isRenov?'<div style="background:rgba(77,166,255,.12);border-radius:8px;padding:10px;font-size:12px;color:#4da6ff;margin-bottom:12px">Renovacion - actualiza los datos del nuevo mes.</div>':"")+' <div class="btn-row"><button class="btn btn-sec" onclick="closeModal()">Cancelar</button><button class="btn btn-acc" onclick="saveDeal()">Guardar</button></div>';
+}
+
+function contenidoForm(d){
+  var dd=d||{};
+  return'<input type="hidden" id="cf-id" value="'+(dd.id||"")+'"><div class="frow"><label>Cliente</label><input id="cf-cliente" class="finput" value="'+(dd.cliente||"")+'" placeholder="Cliente..."></div><div class="frow-2"><div><label>Copywriter</label><input id="cf-copy" class="finput" value="'+(dd.copywriter||"")+'"></div><div><label>Editor</label><select id="cf-editor" class="finput"><option value="">Seleccionar...</option>'+EDITORS.map(function(e){return"<option"+(dd.editor===e?" selected":"")+">"+e+"</option>"}).join("")+'</select></div></div><div class="frow-2"><div><label>Videos</label><input id="cf-videos" type="number" class="finput" value="'+(dd.videos||"")+'"></div><div><label>Precio ($)</label><input id="cf-precio" type="number" class="finput" value="'+(dd.precio||"")+'" step="0.01"></div></div><div class="frow-2"><div><label>Inicio</label><input id="cf-inicio" class="finput" value="'+(dd.inicio||"")+'"></div><div><label>Entrega</label><input id="cf-entrega" class="finput" value="'+(dd.entrega||"")+'"></div></div><div class="frow-2"><div><label>Costo copy ($)</label><input id="cf-ccopy" type="number" class="finput" value="'+(dd.costoCopy||"")+'" step="0.01"></div><div><label>Costo editor ($)</label><input id="cf-ceditor" type="number" class="finput" value="'+(dd.costoEditor||"")+'" step="0.01"></div></div><div class="frow"><label>Cobrado ($)</label><input id="cf-cobrado" type="number" class="finput" value="'+(dd.cobrado||0)+'" step="0.01"></div><div class="frow"><label>Estado</label><select id="cf-estado" class="finput"><option'+(dd.estado==="En curso"?" selected":"")+'>En curso</option><option'+(dd.estado==="Completado"?" selected":"")+'>Completado</option><option'+(dd.estado==="Pausado"?" selected":"")+'>Pausado</option></select></div><div class="frow"><label>Notas</label><textarea id="cf-notas" class="finput" rows="2" style="resize:vertical">'+(dd.notas||"")+'</textarea></div><div class="btn-row"><button class="btn btn-sec" onclick="closeModal()">Cancelar</button><button class="btn btn-acc" onclick="saveContenido()">Guardar</button></div>';
+}
+
+function populateClienteDatalist(){
+  var dl=document.getElementById("cli-dl");
+  if(!dl)return;
+  dl.innerHTML="";
+  getClientes().forEach(function(c){var o=document.createElement("option");o.value=c;dl.appendChild(o);});
+}
+
+function saveDeal(){
+  var id=parseInt(document.getElementById("f-id").value)||0;
+  var cliente=document.getElementById("f-cliente").value.trim();
+  var editor=document.getElementById("f-editor").value;
+  var mes=document.getElementById("f-mes").value;
+  var videos=parseInt(document.getElementById("f-videos").value)||0;
+  var precio=parseFloat(document.getElementById("f-precio").value)||0;
+  var cobroPct=parseInt(document.getElementById("f-cobro").value);
+  var driveVal=document.getElementById("f-drive").value.trim();
+  var m=driveVal.match(/folders\/([a-zA-Z0-9_-]+)/);
+  if(m)driveVal=m[1];
+  var servicios=[].slice.call(document.querySelectorAll(".svc-chip.sel")).map(function(c){return c.dataset.v});
+  var cobrado=Math.round(precio*cobroPct/100*100)/100;
+  var ganancia=Math.round(cobrado*0.5*100)/100;
+  if(!cliente||!editor||!mes||!videos||!precio){showToast("Completa todos los campos");return;}
+  if(id){
+    for(var i=0;i<deals.length;i++){if(deals[i].id===id){Object.assign(deals[i],{cliente:cliente,editor:editor,mes:mes,videos:videos,precio:precio,cobrado:cobrado,ganancia:ganancia,margen:cobrado?ganancia/cobrado:0.5,servicios:servicios,drive:driveVal});break;}}
+    showToast("Deal actualizado");
+  } else {
+    if(MESES_ORDER.indexOf(mes)<0){MESES_ORDER.push(mes);MESES_LBL[mes]=new Date(mes+"-01").toLocaleString("es",{month:"short"}).replace(".","")}
+    deals.push({id:nextId++,mes:mes,cliente:cliente,editor:editor,videos:videos,precio:precio,cobrado:cobrado,ganancia:ganancia,margen:cobrado?ganancia/cobrado:0.5,pagoEd:"Pendiente",servicios:servicios,drive:driveVal});
+    activeMes=mes;showToast("Deal de "+cliente+" agregado");
+  }
+  closeModal();buildMesSels();renderAll();
+}
+
+function saveContenido(){
+  var id=parseInt(document.getElementById("cf-id").value)||0;
+  var cliente=document.getElementById("cf-cliente").value.trim();
+  var copywriter=document.getElementById("cf-copy").value.trim();
+  var editor=document.getElementById("cf-editor").value;
+  var videos=parseInt(document.getElementById("cf-videos").value)||0;
+  var precio=parseFloat(document.getElementById("cf-precio").value)||0;
+  var cobrado=parseFloat(document.getElementById("cf-cobrado").value)||0;
+  var costoCopy=parseFloat(document.getElementById("cf-ccopy").value)||0;
+  var costoEditor=parseFloat(document.getElementById("cf-ceditor").value)||0;
+  var inicio=document.getElementById("cf-inicio").value;
+  var entrega=document.getElementById("cf-entrega").value;
+  var estado=document.getElementById("cf-estado").value;
+  var notas=document.getElementById("cf-notas").value;
+  var ganancia=cobrado-costoCopy-costoEditor;
+  if(!cliente||!precio){showToast("Completa cliente y precio");return;}
+  var obj={cliente:cliente,copywriter:copywriter,editor:editor,videos:videos,precio:precio,cobrado:cobrado,pendiente:precio-cobrado,costoCopy:costoCopy,costoEditor:costoEditor,inicio:inicio,entrega:entrega,estado:estado,ganancia:ganancia,notas:notas,pagoCopy:"Pendiente",pagoEditor:"Pendiente",mes:"2026-04"};
+  if(id){for(var i=0;i<contenidoDeals.length;i++){if(contenidoDeals[i].id===id){Object.assign(contenidoDeals[i],obj);break;}}showToast("Deal actualizado");}
+  else{contenidoDeals.push(Object.assign({id:nextContId++},obj));showToast("Deal agregado");}
+  closeModal();renderContenido();
+}
+
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open");}
+
+function openPanel(title,html){
+  document.getElementById("sp-title").textContent=title;
+  document.getElementById("sp-body").innerHTML=html;
+  document.getElementById("slide-panel").classList.add("open");
+  document.getElementById("main-content").classList.add("panel-open");
+}
+function closePanel(){
+  document.getElementById("slide-panel").classList.remove("open");
+  document.getElementById("main-content").classList.remove("panel-open");
+}
+
+function openPagoEditorPanel(key,total){
+  var parts=key.split("|");
+  renderPagoPanel(key,total,parts[0],parts[1],parts[2]);
+}
+
+function renderPagoPanel(key,total,ed,cl,mes){
+  var ep=editoresPagos[key]||{total:total,pagado:0,adelantos:[]};
+  var resta=Math.max(0,total-ep.pagado);
+  var pct=Math.round(ep.pagado/total*100);
+  var col=getColor(ed);
+  var hist="";
+  if(ep.adelantos.length>0){
+    hist=ep.adelantos.map(function(a){return'<div class="pago-hist-item"><div><div style="font-weight:500">'+fmt(a.monto)+'</div><div style="font-size:10px;color:var(--mu)">'+a.fecha+(a.nota?" - "+a.nota:"")+'</div></div><span class="badge bg">OK</span></div>'}).join("");
+  } else {
+    hist='<div style="font-size:12px;color:var(--mu2);padding:8px 0">Sin pagos previos</div>';
+  }
+  var adelantoHTML="";
+  if(resta>0){
+    adelantoHTML='<div class="ped-adelanto"><div style="font-size:12px;font-weight:600;margin-bottom:10px">Registrar pago o adelanto</div><div class="monto-display" id="pago-monto-disp">'+fmt(resta)+'</div><input type="range" class="monto-slider" id="pago-slider" min="1" max="'+Math.ceil(resta)+'" value="'+Math.ceil(resta)+'" step="1" oninput="document.getElementById(\'pago-monto-disp\').textContent=\'$\'+parseInt(this.value).toLocaleString(\'es-AR\')"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-bottom:10px"><span>$1 (adelanto)</span><span>'+fmt(resta)+' (completo)</span></div><div class="frow"><label>Nota opcional</label><input id="pago-nota" class="finput" placeholder="Ej: adelanto semana 1..."></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-acc" style="flex:1" onclick="registrarPago(\''+key+'\','+total+',\''+ed+'\',\''+cl+'\',\''+mes+'\')">Confirmar pago</button><button class="btn btn-red" onclick="closePanel()">Cancelar</button></div></div>';
+  } else {
+    adelantoHTML='<div style="background:rgba(170,255,0,.12);border-radius:8px;padding:14px;text-align:center;font-size:14px;font-weight:600;color:#aaff00">Deal completamente pagado</div>';
+  }
+  var html='<div class="ped-editor"><div class="av" style="background:'+col+'22;color:'+col+';width:40px;height:40px;font-size:15px">'+initials(ed)+'</div><div><div style="font-size:15px;font-weight:700">'+ed+'</div><div style="font-size:12px;color:var(--mu)">Cliente: '+cl+' - '+mes+'</div></div></div><div class="ped-stats"><div class="ped-stat"><div class="ped-stat-lbl">Total del deal</div><div class="ped-stat-val">'+fmt(total)+'</div></div><div class="ped-stat"><div class="ped-stat-lbl">Resta pagar</div><div class="ped-stat-val" style="color:'+(resta>0?"#ff4d4d":"#aaff00")+'">'+(resta>0?fmt(resta):"Listo")+'</div></div><div class="ped-stat"><div class="ped-stat-lbl">Ya pagado</div><div class="ped-stat-val" style="color:#4da6ff">'+fmt(ep.pagado)+'</div></div><div class="ped-stat"><div class="ped-stat-lbl">Avance</div><div class="ped-stat-val">'+pct+'%</div></div></div>'+(ep.pagado>0?'<div class="pb" style="margin-bottom:14px"><div class="pf pfb" style="width:'+pct+'%"></div></div>':"")+adelantoHTML+'<div class="pago-hist" style="margin-top:14px"><div style="font-size:12px;font-weight:600;margin-bottom:8px">Historial de pagos</div>'+hist+"</div>";
+  openPanel("Pago a "+ed,html);
+}
+
+function registrarPago(key,total,ed,cl,mes){
+  var slider=document.getElementById("pago-slider");
+  var nota=document.getElementById("pago-nota").value.trim();
+  var monto=parseInt(slider.value);
+  if(!editoresPagos[key])editoresPagos[key]={total:total,pagado:0,adelantos:[]};
+  editoresPagos[key].pagado=Math.min(total,editoresPagos[key].pagado+monto);
+  editoresPagos[key].adelantos.push({monto:monto,fecha:today(),nota:nota});
+  showToast("Pago de "+fmt(monto)+" a "+ed+" registrado");
+  renderAll();renderPagoPanel(key,total,ed,cl,mes);
+}
+
+function openEditorDealsPanel(edNombre){
+  var deals_ed=pagosPendientes.filter(function(p){return p.ed===edNombre});
+  var col=getColor(edNombre);
+  var deudaTotal=deals_ed.reduce(function(s,p){var k=p.ed+"|"+p.cl+"|"+p.m;var ep=editoresPagos[k];return s+(ep?Math.max(0,p.c-ep.pagado):p.c)},0);
+  var html='<div class="ped-editor"><div class="av" style="background:'+col+'22;color:'+col+';width:40px;height:40px;font-size:15px">'+initials(edNombre)+'</div><div><div style="font-size:15px;font-weight:700">'+edNombre+'</div><div style="font-size:12px;color:#ff4d4d">Deuda total: '+fmt(deudaTotal)+'</div></div></div>';
+  deals_ed.forEach(function(p){
+    var k=p.ed+"|"+p.cl+"|"+p.m;
+    var ep=editoresPagos[k]||{total:p.c,pagado:0};
+    var resta=Math.max(0,p.c-ep.pagado);
+    html+='<div class="ed-deal-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div><div style="font-weight:600">'+p.cl+'</div><div style="font-size:11px;color:var(--mu)">'+p.m+" - "+p.v+' videos</div></div><div style="text-align:right"><div style="font-weight:700;color:'+(resta>0?"#ff4d4d":"#aaff00")+'">'+(resta>0?fmt(resta):"Pagado")+'</div>'+(ep.pagado>0&&resta>0?'<div style="font-size:10px;color:#4da6ff">Adelantado: '+fmt(ep.pagado)+"</div>":"")+"</div></div>"+(resta>0?'<div class="pb" style="margin-bottom:8px"><div class="pf '+(ep.pagado>0?"pfb":"pfr")+'" style="width:'+Math.round(ep.pagado/p.c*100)+'%"></div></div><button class="btn btn-acc" style="width:100%;font-size:12px" onclick="openPagoEditorPanel(\''+k+'\','+p.c+')">Gestionar pago</button>':"")+"</div>";
+  });
+  openPanel("Deals de "+edNombre,html);
+}
+
+function openRetirarPanel(){
+  var tG=deals.reduce(function(s,d){return s+d.ganancia},0);
+  var tR=retiros.reduce(function(s,r){return s+r.monto},0);
+  var disp=tG-tR;
+  var hist="";
+  if(retiros.length>0){hist=retiros.map(function(r){return'<div class="pago-hist-item"><div><div style="font-weight:500">'+r.concepto+'</div><div style="font-size:10px;color:var(--mu)">'+r.fecha+'</div></div><span style="color:#4da6ff;font-weight:600">'+fmt(r.monto)+"</span></div>"}).join("");}
+  else{hist='<div style="font-size:12px;color:var(--mu2)">Sin retiros aun</div>';}
+  var html='<div style="background:var(--s2);border-radius:var(--rs);padding:14px;margin-bottom:16px"><div style="font-size:11px;color:var(--mu);margin-bottom:4px">Disponible para retirar</div><div style="font-size:28px;font-weight:700;color:#aaff00">'+fmt(disp)+'</div><div style="font-size:11px;color:var(--mu);margin-top:4px">Ganancia acum. '+fmt(tG)+" - Retirado "+fmt(tR)+'</div></div><div class="frow"><label>Monto a retirar ($)</label><input id="ret-monto" type="number" class="finput" placeholder="0" max="'+Math.floor(disp)+'" step="0.01"></div><div class="frow"><label>Concepto</label><input id="ret-concepto" class="finput" value="Retiro '+fmtMes(activeMes)+'"></div><button class="btn btn-acc" style="width:100%;margin-top:8px" onclick="registrarRetiro('+disp+')">Registrar retiro</button><div class="dv"></div><div style="font-size:12px;font-weight:600;margin-bottom:10px">Historial</div>'+hist;
+  openPanel("Registrar retiro",html);
+}
+
+function registrarRetiro(disp){
+  var monto=parseFloat(document.getElementById("ret-monto").value)||0;
+  var concepto=document.getElementById("ret-concepto").value.trim()||"Retiro";
+  if(monto<=0){showToast("Ingresa un monto valido");return;}
+  if(monto>disp){showToast("No podes retirar mas de lo disponible");return;}
+  retiros.push({monto:monto,concepto:concepto,fecha:today()});
+  showToast("Retiro de "+fmt(monto)+" registrado");
+  closePanel();renderFinanzas();
+}
+
+function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},3000);}
+
+initEdPagos();
+buildMesSels();
+renderAll();
+</script>
+</body>
+</html>
